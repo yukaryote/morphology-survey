@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Three.js & jsPsych Experiment</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/jspsych.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-button-response.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-keyboard-response.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-image-button-response.js"></script>
+</head>
+<body>
+  <div id="jspsych-target"></div>
+
+  <script>
+    // Create a Three.js scene
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    var renderer = new THREE.WebGLRenderer();
+    renderer.setSize(400, 400);
+    document.getElementById("jspsych-target").appendChild(renderer.domElement);
+
+    // Create a cylinder
+    var geometry = new THREE.CylinderGeometry(1, 1, 5, 32);
+    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    var cylinder = new THREE.Mesh( geometry, material );
+
+    // Add the cylinder to the scene
+    scene.add(cylinder);
+
+    // Position the camera
+    camera.position.z = 5;
+
+    // Render the scene
+    function animate() {
+      requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // Define the jsPsych experiment timeline
+    var timeline = [
+      {
+        type: "html-button-response",
+        stimulus: "This is a cylinder",
+        choices: ["Next"],
+      },
+      {
+        type: "html-button-response",
+        stimulus: "Click 'Next' to view the top view of the cylinder",
+        choices: ["Next"],
+      },
+      {
+        type: "html-button-response",
+        stimulus: "Top View",
+        choices: ["Next"],
+        on_finish: function () {
+          // Remove the side view and display the top view
+          camera.position.z = 0
+          renderer.render(scene, camera);
+        },
+      },
+      {
+        type: "html-button-response",
+        stimulus: "Click 'Next' to view the side view of the cylinder",
+        choices: ["Next"],
+      },
+      {
+        type: "html-button-response",
+        stimulus: "Side View",
+        choices: ["Finish"],
+        on_finish: function () {
+          // Remove the top view and display the side view
+          camera.position.z = 2
+          renderer.render(scene, camera);
+        },
+      },
+    ];
+
+    // Run the experiment
+    jsPsych.init({
+      timeline: timeline,
+      display_element: "jspsych-target",
+    });
+  </script>
+</body>
+</html>
