@@ -1,14 +1,18 @@
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const ROBOT_RADIUS = 1;
+const ROBOT_HEIGHT = 5;
+const SENSOR_RADIUS = 1;
+const SENSOR_HEIGHT = 1;
+
 var scene = new THREE.Scene();
 var width = window.innerWidth;
 var height = window.innerHeight;
 var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-const renderers = [];
-for (let i = 0; i < 3; i++) {
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(400, 400);
-    document.getElementById("render").appendChild(renderer.domElement);
-    renderers.push(renderer)
-}
+var renderer = new THREE.WebGLRenderer();
+renderer.setSize(400, 400);
+document.getElementById("render").appendChild(renderer.domElement);
 
 // 2 directional lights
 const dl = new THREE.DirectionalLight(0xffffff, 1);
@@ -27,8 +31,6 @@ scene.add( axesHelper );
 var geometry = new THREE.CylinderGeometry(1, 1, 5, 32);
 const material = new THREE.MeshPhongMaterial();
 var cylinder = new THREE.Mesh( geometry, material );
-
-// Add the cylinder to the scene
 scene.add(cylinder);
 
 // Create a cone sensor
@@ -39,45 +41,55 @@ cone.rotation.x = -Math.PI / 2;
 cone.position.z = 2;
 scene.add( cone );
 
-// Position the camera
-camera.position.z = 10;
+// These are the default camera positions we can got to: home, side view, top view
+const camera_positions = [
+    new THREE.Vector3(7, 7, 7),
+    new THREE.Vector3(0, 0, 10),
+    new THREE.Vector3(0, 20, 0)
+];
 
-// Render the scene
-function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-}
+// Create drag controller
+const controls = new OrbitControls( camera, renderer.domElement );
+camera.position.copy(camera_positions[0]);
+//controls.target.set( camera_positions[0] );
+controls.update();
+controls.enablePan = false;
+controls.enableDamping = true;
+
 
 function updateSensorPosition() {
-    const height = parseFloat(document.getElementById('x-slider').value);
-    const pitch = parseFloat(document.getElementById('y-slider').value);
-    const fov = parseFloat(document.getElementById('z-slider').value);
-
-    cone.position.y = height;
-    cone.rotation.x = pitch;
+    /*
+    Here, we want to change the xyz coordinates + yaw globally, and change pitch locally.
+    */
+    const x = parseFloat(document.getElementById('x-slider').value);
+    const y = parseFloat(document.getElementById('y-slider').value);
+    const z = parseFloat(document.getElementById('z-slider').value);
+    const pitch = parseFloat(document.getElementById('pitch-slider').value);
+    const yaw = parseFloat(document.getElementById('yaw-slider').value);
+    const fov = parseFloat(document.getElementById('fov-slider').value);
+    
+    cone.position.x = x;
+    cone.position.y = y;
+    cone.position.z = z;
+    cone.rotation.y = yaw;
+    cone.rotation.y = pitch;
     cone.scale.x = fov;
-    cone.scale.y = fov;
+    cone.scale.z = fov;
 }
 
 // Add event listeners to update the camera position when sliders are moved
 document.getElementById('x-slider').addEventListener('input', updateSensorPosition);
 document.getElementById('y-slider').addEventListener('input', updateSensorPosition);
 document.getElementById('z-slider').addEventListener('input', updateSensorPosition);
+document.getElementById('pitch-slider').addEventListener('input', updateSensorPosition);
+document.getElementById('yaw-slider').addEventListener('input', updateSensorPosition);
+document.getElementById('fov-slider').addEventListener('input', updateSensorPosition);
 
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
-    const camera_positions = [
-        new THREE.Vector3(7, 7, 7),
-        new THREE.Vector3(0, 0, 10),
-        new THREE.Vector3(0, 20, 0)
-    ];
-
-    for (let i = 0; i < renderers.length; i++) {
-        camera.position.copy(camera_positions[i]);
-        camera.lookAt(0, 0, 0);
-        renderers[i].render(scene, camera);
-    }
+    controls.update();
+    renderer.render(scene, camera);
 };
 
 animate();
