@@ -7,73 +7,84 @@
   <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-button-response.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-html-keyboard-response.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-image-button-response.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspsych@6.3.1/plugins/jspsych-canvas-slider-response.js"></script>
 </head>
 <body>
   <div id="jspsych-target"></div>
 
   <script>
     // Create a Three.js scene
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    var renderer = new THREE.WebGLRenderer();
-    renderer.setSize(400, 400);
-    document.getElementById("jspsych-target").appendChild(renderer.domElement);
+    function renderRobot(c) {
+      var scene = new THREE.Scene();
+      var width = window.innerWidth;
+      var height = window.innerHeight;
+      var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+      const renderers = [];
+      for (let i = 0; i < 3; i++) {
+          var renderer = new THREE.WebGLRenderer({canvas: c});
+          renderer.setSize(400, 400);
+          document.getElementById("jspsych-target").appendChild(renderer.domElement);
+          renderers.push(renderer)
+      }
 
-    // Create a cylinder
-    var geometry = new THREE.CylinderGeometry(1, 1, 5, 32);
-    var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    var cylinder = new THREE.Mesh( geometry, material );
+      //2 directional lights
+      const dl = new THREE.DirectionalLight(0xffffff, 1);
+      dl.position.set(0.1, 0.1, 0.1);
+      scene.add(dl);
 
-    // Add the cylinder to the scene
-    scene.add(cylinder);
+      const dl2 = new THREE.DirectionalLight(0xffffff, 1);
+      dl2.position.set(-0.1, 0.1, -0.1);
+      scene.add(dl2);
 
-    // Position the camera
-    camera.position.z = 5;
+      //viz axes
+      const axesHelper = new THREE.AxesHelper( 5 );
+      scene.add( axesHelper );
 
-    // Render the scene
-    function animate() {
-      requestAnimationFrame(animate);
-      renderer.render(scene, camera);
+      // Create a cylinder
+      var geometry = new THREE.CylinderGeometry(1, 1, 5, 32);
+      const material = new THREE.MeshPhongMaterial();
+      var cylinder = new THREE.Mesh( geometry, material );
+
+      // Add the cylinder to the scene
+      scene.add(cylinder);
+
+      // Position the camera
+      camera.position.z = 10;
+
+      // Render the scene
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+
+      function renderViews() {
+          const camera_positions = [
+              new THREE.Vector3(7, 7, 7),
+              new THREE.Vector3(0, 0, 10),
+              new THREE.Vector3(0, 20, 0)
+          ];
+
+          for (let i = 0; i < renderers.length; i++) {
+              camera.position.copy(camera_positions[i]);
+              camera.lookAt(0, 0, 0);
+              renderers[i].render(scene, camera);
+          }
+      }
+      renderViews()
     }
-    animate();
 
     // Define the jsPsych experiment timeline
+    
     var timeline = [
       {
-        type: "html-button-response",
-        stimulus: "This is a cylinder",
-        choices: ["Next"],
-      },
-      {
-        type: "html-button-response",
-        stimulus: "Click 'Next' to view the top view of the cylinder",
-        choices: ["Next"],
-      },
-      {
-        type: "html-button-response",
-        stimulus: "Top View",
-        choices: ["Next"],
-        on_finish: function () {
-          // Remove the side view and display the top view
-          camera.position.z = 0
-          renderer.render(scene, camera);
+        type: "canvas-slider-response",
+        stimulus: function(c) {
+            renderRobot(c);
         },
-      },
-      {
-        type: "html-button-response",
-        stimulus: "Click 'Next' to view the side view of the cylinder",
-        choices: ["Next"],
-      },
-      {
-        type: "html-button-response",
-        stimulus: "Side View",
-        choices: ["Finish"],
-        on_finish: function () {
-          // Remove the top view and display the side view
-          camera.position.z = 2
-          renderer.render(scene, camera);
-        },
-      },
+        labels: ['Exactly<br>the same','Totally<br>different'],
+        //canvas_size: [200, 500],
+        prompt: '<p>How different would you say the colors of these two squares are?</p>',
+      }
     ];
 
     // Run the experiment
@@ -81,6 +92,7 @@
       timeline: timeline,
       display_element: "jspsych-target",
     });
+    
   </script>
 </body>
 </html>
