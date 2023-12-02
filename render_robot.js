@@ -56,6 +56,15 @@ controls.update();
 controls.enablePan = false;
 controls.enableDamping = true;
 
+function addSensor() {
+    // Create a cone sensor
+    const cone_geometry = new THREE.ConeGeometry( 1, 2, 32 ); 
+    const cone_material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    const cone = new THREE.Mesh(cone_geometry, cone_material ); 
+    cone.rotation.x = -Math.PI / 2;
+    cone.position.z = 2;
+    scene.add( cone );
+}
 
 function updateSensorPosition() {
     /*
@@ -69,12 +78,21 @@ function updateSensorPosition() {
     const fov = parseFloat(document.getElementById('fov-slider').value);
     
     cone.position.x = x;
+    console.log(cone.position.x);
     cone.position.y = y;
     cone.position.z = z;
-    cone.rotation.y = yaw;
-    cone.rotation.y = pitch;
+    // Set yaw globally: yaw = r_w2c * [yaw vec]
+    const myAxis = new THREE.Vector3(0, 1, 0);
+    // rotate the mesh 45 on this axis
+    //cone.matrix.setRotationFromQuaternion(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0, 'XYZ')));
+    //cone.rotation.z = yaw;
+    cone.rotation.x = pitch;
     cone.scale.x = fov;
     cone.scale.z = fov;
+}
+
+function disableViz() {
+    cone.visible = !cone.visible;
 }
 
 // Add event listeners to update the camera position when sliders are moved
@@ -84,6 +102,8 @@ document.getElementById('z-slider').addEventListener('input', updateSensorPositi
 document.getElementById('pitch-slider').addEventListener('input', updateSensorPosition);
 document.getElementById('yaw-slider').addEventListener('input', updateSensorPosition);
 document.getElementById('fov-slider').addEventListener('input', updateSensorPosition);
+document.getElementById('add-sensor').addEventListener('click', addSensor);
+document.getElementById('disable-viz').addEventListener('click', disableViz);
 
 // Animation loop
 function animate() {
