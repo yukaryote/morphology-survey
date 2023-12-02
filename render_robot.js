@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+//import ViewCube from 'three-viewcube';
+
 const ROBOT_RADIUS = 1;
 const ROBOT_HEIGHT = 5;
 const SENSOR_RADIUS = 1;
@@ -47,6 +49,7 @@ const camera_positions = [
     new THREE.Vector3(0, 0, 10),
     new THREE.Vector3(0, 20, 0)
 ];
+
 
 // Create drag controller
 const controls = new OrbitControls( camera, renderer.domElement );
