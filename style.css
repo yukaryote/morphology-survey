@@ -9,13 +9,17 @@ body {
 }
 
 
-#render {
+#container {
+    display: flex;
+    justify-content: center; /* Changed from space-around to space-between to make the divs closer together */
+    align-items: center;
+}
+
+#render, #sensor-render {
+    flex: 0, 0, auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    height: 500px;
-    margin: 0 auto;
     background-color: #fff;
 }
 

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 //import ViewCube from 'three-viewcube';
 
@@ -13,8 +14,13 @@ var width = window.innerWidth;
 var height = window.innerHeight;
 var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
 var renderer = new THREE.WebGLRenderer();
+const loader = new GLTFLoader();
+
+var sensor_renderer = new THREE.WebGLRenderer();
 renderer.setSize(400, 400);
+sensor_renderer.setSize(400, 400);
 document.getElementById("render").appendChild(renderer.domElement);
+document.getElementById("sensor-render").appendChild(sensor_renderer.domElement);
 
 // 2 directional lights
 const dl = new THREE.DirectionalLight(0xffffff, 1);
@@ -29,6 +35,42 @@ scene.add(dl2);
 const axesHelper = new THREE.AxesHelper( 5 );
 scene.add( axesHelper );
 
+//load env
+loader.load(
+	// resource URL
+	'data/len_2.0_rem_0.6_config_0.glb',
+	// called when the resource is loaded
+	function ( gltf ) {
+        gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
+        gltf.scene.position.y -= ROBOT_HEIGHT / 2;
+        gltf.scene.position.x -= 2;   
+        gltf.scene.position.z -= 2; 
+        gltf.scene.scale.x *= 2;
+        gltf.scene.scale.y *= 2;
+        gltf.scene.scale.z *= 2;
+		scene.add( gltf.scene );
+
+		gltf.animations; // Array<THREE.AnimationClip>
+		gltf.scene; // THREE.Group
+		gltf.scenes; // Array<THREE.Group>
+		gltf.cameras; // Array<THREE.Camera>
+		gltf.asset; // Object
+
+	},
+	// called while loading is progressing
+	function ( xhr ) {
+
+		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+	},
+	// called when loading has errors
+	function ( error ) {
+
+		console.log( 'An error happened' );
+
+	}
+);
+
 // Create a cylinder
 var geometry = new THREE.CylinderGeometry(1, 1, 5, 32);
 const material = new THREE.MeshPhongMaterial();
@@ -42,6 +84,13 @@ const cone = new THREE.Mesh(cone_geometry, cone_material );
 cone.rotation.x = -Math.PI / 2;
 cone.position.z = 2;
 scene.add( cone );
+
+// Attach camera to cone
+var sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+sensor_camera.rotation.x = -Math.PI / 2;
+sensor_camera.rotation.z = Math.PI;
+sensor_camera.position.z = 2;
+cone.add(sensor_camera);
 
 // These are the default camera positions we can got to: home, side view, top view
 const camera_positions = [
@@ -113,6 +162,7 @@ function animate() {
     requestAnimationFrame(animate);
     controls.update();
     renderer.render(scene, camera);
+    sensor_renderer.render(scene, sensor_camera);
 };
 
 animate();
