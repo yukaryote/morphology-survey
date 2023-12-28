@@ -38,9 +38,17 @@ function addSensor() {
     cone.add(sensor_camera);
 
     sensors.set(sensor_id, cone);
+    // deactivate all other sensors
+    sensors.forEach((sensor) => {
+        if (!sensor.active) {
+            sensor.onClick()
+        }
+    });
     cone.onClick();
     active_sensor = cone;
     sensor_id++;
+
+    // TODO: turn all sliders to default values
     return cone;
 };
 
