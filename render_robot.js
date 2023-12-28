@@ -27,19 +27,26 @@ let hovered = {};
 
 function addSensor() {
     // Create a cone sensor
-    var cone = new Sensor();
+    var cone = new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
     scene.add( cone );
 
     // add camera to sensor
     sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    sensor_camera.rotation.x = -Math.PI / 2;
+    sensor_camera.rotation.x = cone.rotation.x;
     sensor_camera.rotation.z = Math.PI;
-    sensor_camera.position.z = 2;
+    sensor_camera.position.z = cone.position.z;
     cone.add(sensor_camera);
 
     sensors.set(sensor_id, cone);
+    cone.onClick();
+    active_sensor = cone;
     sensor_id++;
     return cone;
+};
+
+function removeSensor() {
+    // remove the active sensor
+    scene.remove(active_sensor);
 };
 
 // responsive
@@ -69,14 +76,13 @@ function setup() {
     document.getElementById("render").appendChild(renderer.domElement);
     document.getElementById("sensor-render").appendChild(sensor_renderer.domElement);
 
-    // 2 directional lights
+    // 1 directional light, 1 ambient light
     const dl = new THREE.DirectionalLight(0xffffff, 1);
     dl.position.set(0.1, 0.1, 0.1);
     scene.add(dl);
 
-    const dl2 = new THREE.DirectionalLight(0xffffff, 1);
-    dl2.position.set(-0.1, 0.1, -0.1);
-    scene.add(dl2);
+    const ambientLight = new THREE.AmbientLight();
+    scene.add(ambientLight);
 
     //viz axes
     const axesHelper = new THREE.AxesHelper( 5 );
@@ -87,7 +93,6 @@ function setup() {
         // resource URL
         //'data/len_2.0_rem_0.6_config_0.glb',
         'data/empty_room_20_20.glb',
-        // called when the resource is loaded
         function ( gltf ) {
             gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
             gltf.scene.position.y -= ROBOT_HEIGHT / 2;
@@ -103,19 +108,12 @@ function setup() {
             gltf.scenes; // Array<THREE.Group>
             gltf.cameras; // Array<THREE.Camera>
             gltf.asset; // Object
-
         },
-        // called while loading is progressing
         function ( xhr ) {
-
             console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
         },
-        // called when loading has errors
         function ( error ) {
-
             console.log( 'An error happened' );
-
         }
     );
 
@@ -179,7 +177,10 @@ function setup() {
     window.addEventListener('click', (e) => {
     intersects.forEach((hit) => {
         // Call onClick
-        if (hit.object.onClick) hit.object.onClick(hit)
+        if (hit.object.onClick) {
+            hit.object.onClick(hit)
+            active_sensor = hit.object
+        }
     })
     })
 };
@@ -189,6 +190,7 @@ function updateSensorPosition(sensor_id) {
     Here, we want to change the xyz coordinates + yaw globally, and change pitch locally.
     */
     var sensor = active_sensor;
+    console.log(sensor);
     const x = parseFloat(document.getElementById('x-slider').value);
     const y = parseFloat(document.getElementById('y-slider').value);
     const z = parseFloat(document.getElementById('z-slider').value);
@@ -224,6 +226,7 @@ function addListeners(){
     document.getElementById('yaw-slider').addEventListener('input', function(event) { updateSensorPosition(event); });
     document.getElementById('fov-slider').addEventListener('input', function(event) { updateSensorPosition(event); });
     document.getElementById('add-sensor').addEventListener('click', addSensor);
+    document.getElementById('remove-sensor').addEventListener('click', removeSensor);
     document.getElementById('disable-viz').addEventListener('click', disableViz);
 };
 
