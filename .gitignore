@@ -1,5 +1,8 @@
+node_modules
 jspsych
 three
 data
 three-viewcube
 *.DS_Store
+package-lock.json
+package.json
