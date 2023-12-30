@@ -261,9 +261,9 @@ function updateSensorPosition() {
 };
 
 function disableViz() {
-    for (let i = 0; i < sensors.length; i++) {
-        sensors[i].visible = !sensors[i].visible;
-    }
+    robot.children.forEach((sensor) => {
+        sensor.visible = !sensor.visible;
+    });
 };
 
 function addListeners(){
