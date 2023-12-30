@@ -20,14 +20,22 @@ export class Sensor extends THREE.Mesh {
       this.position.y = y
       this.position.z = ROBOT_RADIUS + 0.5 * SENSOR_HEIGHT
       this.active_color = 'hotpink'
+      this.fov = 90
     }
   
     render() {
       this.rotation.x = this.rotation.y += 0.01
     }
+
+    setFOV(fov) {
+      var scale = fov / 90
+      this.scale.x = scale
+      this.scale.z = scale
+      this.fov = fov
+    }
   
     onPointerOver(e) {
-      this.material.color.set(this.active_color)
+      this.material.color.set(this.color)
       this.material.color.convertSRGBToLinear()
     }
   
@@ -36,12 +44,15 @@ export class Sensor extends THREE.Mesh {
         this.material.color.set(color)
         this.material.color.convertSRGBToLinear()
       }
+      else {
+        this.material.color.set(this.color)
+      }
     }
   
     onClick(e) {
       this.active = !this.active
       if (this.active) {
-        this.material.color.set(this.active_color)
+        this.material.color.set(this.color)
       }
       else {
         this.material.color.set(color)

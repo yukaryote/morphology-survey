@@ -4,10 +4,12 @@ body {
     padding: 0;
     background-color: #fff;
 }
-#title {
-    text-align: center;
-}
 
+#title, #description{
+    text-align: center;
+    width: 50%;
+    margin: auto;
+}
 
 #container {
     display: flex;
@@ -48,7 +50,13 @@ body {
     background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
 }
 
-#controls-container button {
+#controls-container output {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+
+button {
     display: inline-block;
     padding: 10px 20px;
     margin: 10px auto;
@@ -61,7 +69,7 @@ body {
     transition: background 0.3s ease;
 }
 
-#controls-container button:hover {
+button:hover {
     background: #251564;
 }
 

@@ -6,48 +6,14 @@
   <title>Robot Camera Control</title>
 </head>
 <body>
-    <div id="title">
-      <h1>Robot Morphology Survey</h1>
-    </div>
-    <div id="container">
-      <div id="render"></div>
-      <div id="sensor-render"></div>
-    </div>
-    <div id="controls-container">
-        <button id="add-sensor">Add photoreceptor</button>
-        <button id="add-camera">Add camera</button>
-        <button id="remove-sensor">Remove active sensor</button>
-        <button id="disable-viz">Disable visualization</button>
-        <br>
-        <label for="x-slider">X:</label>
-        <input type="range" id="x-slider" min="-10" max="10" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
-        <br>
-        <label for="y-slider">Y:</label>
-        <input type="range" id="y-slider" min="-10" max="10" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
-        <br>
-        <label for="z-slider">Z:</label>
-        <input type="range" id="z-slider" min="0" max="5" step="0.1" value="2" oninput="this.nextElementSibling.value = this.value">
-        <br>
-        <label for="pitch-slider">Pitch:</label>
-        <input type="range" id="pitch-slider" min="-180" max="0" step="0.1" value="-90" oninput="this.nextElementSibling.value = this.value">
-        <br>
-        <label for="yaw-slider">Yaw:</label>
-        <input type="range" id="yaw-slider" min="-10" max="10" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
-        <br>
-        <label for="fov-slider">FOV:</label>
-        <input type="range" id="fov-slider" min="0" max="2" step="0.1" value="1" oninput="this.nextElementSibling.value = this.value">
-        <br>
-        <button id="submit">Submit design</button>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
-    <script type="importmap">
-			{
-				"imports": {
-					"three": "./three/build/three.module.js",
-					"three/addons/": "./three/examples/jsm/"
-				}
-			}
-		</script>
-    <script type="module" src="render_robot.js"></script>
+  <div id="title">
+    <h1>Robot Morphology Survey</h1>
+  </div>
+  <div id="description">
+    <p>In this survey, you will optimize the design and placement of visual sensors on a robot for it to complete a target navigation task.</p>
+    <p>There will be 4 questions: 1 question about placing cameras, and 3 questions about placing photoreceptors.</p>
+    <a href="q1.html"><button id="next">Next</button></a>
+  </div>
+
 </body>
 </html>
