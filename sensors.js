@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
-const ROBOT_RADIUS = 1;
-const ROBOT_HEIGHT = 5;
+export const ROBOT_RADIUS = 0.5;
+export const ROBOT_HEIGHT = 4;
 
 const SENSOR_RADIUS = 0.5;
 const SENSOR_HEIGHT = 1;
@@ -19,7 +19,7 @@ export class Sensor extends THREE.Mesh {
       this.rotation.x = -Math.PI / 2
       this.position.y = y
       this.position.z = ROBOT_RADIUS + 0.5 * SENSOR_HEIGHT
-      this.active_color = 'hotpink'
+      this.active_color = 'yellow'
       this.fov = 90
     }
   
@@ -35,27 +35,27 @@ export class Sensor extends THREE.Mesh {
     }
   
     onPointerOver(e) {
-      this.material.color.set(this.color)
+      this.material.color.set(this.active_color)
       this.material.color.convertSRGBToLinear()
     }
   
     onPointerOut(e) {
       if (!this.active) {
-        this.material.color.set(color)
+        this.material.color.set(this.color)
         this.material.color.convertSRGBToLinear()
       }
       else {
-        this.material.color.set(this.color)
+        this.material.color.set(this.active_color)
       }
     }
   
     onClick(e) {
       this.active = !this.active
       if (this.active) {
-        this.material.color.set(this.color)
+        this.material.color.set(this.active_color)
       }
       else {
-        this.material.color.set(color)
+        this.material.color.set(this.color)
       }
     }
 };

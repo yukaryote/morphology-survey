@@ -1,12 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Sensor, Camera } from './sensors.js'
+import { Sensor, Camera, ROBOT_HEIGHT, ROBOT_RADIUS } from './sensors.js'
 
 //import ViewCube from 'three-viewcube';
-
-const ROBOT_RADIUS = 1;
-const ROBOT_HEIGHT = 5;
 
 var controls;
 var renderer;
@@ -81,6 +78,19 @@ function addCamera() {
     var sensorAxesHelper = new THREE.AxesHelper();
     cone.add(sensorAxesHelper)
 
+    // add arrow to visualize direction of view
+    const dir = new THREE.Vector3( 0, -6, 0 );
+
+    //normalize the direction vector (convert to vector of length 1)
+    dir.normalize();
+
+    const origin = new THREE.Vector3( 0, 0, 0 );
+    const length = 10;
+    const hex = 0xffff00;
+
+    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+    cone.add(arrowHelper);
+
     // add camera to sensor
     sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     sensor_camera.rotation.x = cone.rotation.x;
@@ -137,16 +147,39 @@ function setup() {
     //load env
     loader.load(
         // resource URL
-        //'data/len_2.0_rem_0.6_config_0.glb',
-        'data/empty_room_20_20.glb',
+        'data/len_2.0_rem_0.6_config_0.glb',
+        //'data/empty_room_20_20.glb',
         function ( gltf ) {
             gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
             gltf.scene.position.y -= ROBOT_HEIGHT / 2;
             gltf.scene.position.x -= 2;   
             gltf.scene.position.z -= 2; 
-            gltf.scene.scale.x *= 2;
-            gltf.scene.scale.y *= 2;
-            gltf.scene.scale.z *= 2;
+            scene.add( gltf.scene );
+
+            gltf.animations; // Array<THREE.AnimationClip>
+            gltf.scene; // THREE.Group
+            gltf.scenes; // Array<THREE.Group>
+            gltf.cameras; // Array<THREE.Camera>
+            gltf.asset; // Object
+        },
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
+
+    //load sphere
+    loader.load(
+        // resource URL
+        'data/green_sphere.glb',
+        //'data/empty_room_20_20.glb',
+        function ( gltf ) {
+            gltf.scene.position.y -= ROBOT_HEIGHT / 2
+            gltf.scene.position.y += 1.5;
+            gltf.scene.position.x -= 3;   
+            gltf.scene.position.z -= 3; 
             scene.add( gltf.scene );
 
             gltf.animations; // Array<THREE.AnimationClip>
