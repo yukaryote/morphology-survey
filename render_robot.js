@@ -119,7 +119,7 @@ function removeSensor() {
 };
 
 
-function setup() {
+function setup(load_env = false) {
     scene = new THREE.Scene();
     view_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     renderer = new THREE.WebGLRenderer();
@@ -144,61 +144,67 @@ function setup() {
     scene.add( axesHelper );
 
     //load env
-    loader.load(
-        // resource URL
-        'data/len_2.0_rem_0.6_config_0.glb',
-        //'data/empty_room_20_20.glb',
-        function ( gltf ) {
-            gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
-            gltf.scene.position.y -= ROBOT_HEIGHT / 2;
-            gltf.scene.position.x -= 2;   
-            gltf.scene.position.z -= 2; 
-            scene.add( gltf.scene );
+    if (load_env == true) {
+        //load sphere
+        loader.load(
+            // resource URL
+            'data/green_sphere.glb',
+            //'data/empty_room_20_20.glb',
+            function ( gltf ) {
+                gltf.scene.position.y -= ROBOT_HEIGHT / 2
+                gltf.scene.position.y += 1.5;
+                gltf.scene.position.x -= 3;   
+                gltf.scene.position.z -= 3; 
+                scene.add( gltf.scene );
 
-            gltf.animations; // Array<THREE.AnimationClip>
-            gltf.scene; // THREE.Group
-            gltf.scenes; // Array<THREE.Group>
-            gltf.cameras; // Array<THREE.Camera>
-            gltf.asset; // Object
-        },
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        function ( error ) {
-            console.log( 'An error happened' );
-        }
-    );
+                gltf.animations; // Array<THREE.AnimationClip>
+                gltf.scene; // THREE.Group
+                gltf.scenes; // Array<THREE.Group>
+                gltf.cameras; // Array<THREE.Camera>
+                gltf.asset; // Object
+            },
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            function ( error ) {
+                console.log( 'An error happened' );
+            }
+        );
+        loader.load(
+            // resource URL
+            'data/mp3d_2.glb',
+            //'data/empty_room_20_20.glb',
+            function ( gltf ) {
+                gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
+                gltf.scene.position.y -= ROBOT_HEIGHT / 2;
+                gltf.scene.position.x -= 2;   
+                gltf.scene.position.z -= 2; 
+                scene.add( gltf.scene );
 
-    //load sphere
-    loader.load(
-        // resource URL
-        'data/green_sphere.glb',
-        //'data/empty_room_20_20.glb',
-        function ( gltf ) {
-            gltf.scene.position.y -= ROBOT_HEIGHT / 2
-            gltf.scene.position.y += 1.5;
-            gltf.scene.position.x -= 3;   
-            gltf.scene.position.z -= 3; 
-            scene.add( gltf.scene );
-
-            gltf.animations; // Array<THREE.AnimationClip>
-            gltf.scene; // THREE.Group
-            gltf.scenes; // Array<THREE.Group>
-            gltf.cameras; // Array<THREE.Camera>
-            gltf.asset; // Object
-        },
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        function ( error ) {
-            console.log( 'An error happened' );
-        }
-    );
+                gltf.animations; // Array<THREE.AnimationClip>
+                gltf.scene; // THREE.Group
+                gltf.scenes; // Array<THREE.Group>
+                gltf.cameras; // Array<THREE.Camera>
+                gltf.asset; // Object
+            },
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            function ( error ) {
+                console.log( 'An error happened' );
+                console.log(error);
+            }
+        );
+    }
 
     // Create a cylinder
     var geometry = new THREE.CylinderGeometry(ROBOT_RADIUS, ROBOT_RADIUS, ROBOT_HEIGHT, 32);
     const material = new THREE.MeshPhongMaterial();
     robot = new THREE.Mesh( geometry, material );
+    // Set robot position
+    robot.position.y = ROBOT_HEIGHT / 2;
+    robot.position.x = 2;
+    robot.position.z = 2;
     scene.add(robot);
 
     // Create a cone sensor, add to sensors list
@@ -322,6 +328,6 @@ function animate() {
     //sensor_renderer.render(scene, sensor_camera);
 };
 
-setup();
+setup(true);
 addListeners();
 animate();
