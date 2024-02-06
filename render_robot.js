@@ -16,7 +16,6 @@ var width = window.innerWidth
 var height = window.innerHeight
 
 const sensors = new Map();
-var sensor_id = 0;
 var active_sensor;
 const raycaster = new THREE.Raycaster()
 const mouse = new THREE.Vector2()
@@ -39,9 +38,9 @@ function updateSlidersFromSensor() {
 };
 
 
-function addPhotoreceptor() {
+function addSensor(isCamera) {
     // Create a cone sensor
-    var cone = new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
+    var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2) : new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
     robot.add( cone );
     var sensorAxesHelper = new THREE.AxesHelper();
     cone.add(sensorAxesHelper)
@@ -65,47 +64,18 @@ function addPhotoreceptor() {
     sensor_camera.position.z = cone.position.z;
     cone.add(sensor_camera);
 
-    sensors.set(sensor_id, cone);
     // deactivate all other sensors
     sensors.forEach((sensor) => {
-        if (!sensor.active) {
-            sensor.onClick()
-        }
+        sensor.active = false;
+        sensor.updateColor(false);
     });
+
+    sensors.set(cone.uuid, cone);
     cone.onClick();
+    cone.active = true;
+    cone.updateColor(false);
     active_sensor = cone;
     updateSlidersFromSensor();
-    sensor_id++;
-
-    // TODO: turn all sliders to default values
-    return cone
-};
-
-function addCamera() {
-    // Create a cone sensor
-    var cone = new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
-    robot.add( cone );
-    var sensorAxesHelper = new THREE.AxesHelper();
-    cone.add(sensorAxesHelper)
-
-    // add camera to sensor
-    sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    sensor_camera.rotation.x = cone.rotation.x;
-    sensor_camera.rotation.z = Math.PI;
-    sensor_camera.position.z = cone.position.z;
-    cone.add(sensor_camera);
-
-    sensors.set(sensor_id, cone);
-    // deactivate all other sensors
-    sensors.forEach((sensor) => {
-        if (!sensor.active) {
-            sensor.onClick()
-        }
-    });
-    cone.onClick();
-    active_sensor = cone;
-    updateSlidersFromSensor();
-    sensor_id++;
 
     // TODO: turn all sliders to default values
     return cone
@@ -206,7 +176,7 @@ function setup(load_env = false) {
     scene.add(robot);
 
     // Create a cone sensor, add to sensors list
-    var cone = addPhotoreceptor(robot)
+    var _ = addSensor(false);
 
     // These are the default camera positions we can got to: home, side view, top view
     const camera_positions = [
@@ -222,25 +192,30 @@ function setup(load_env = false) {
     controls.enablePan = false;
     controls.enableDamping = true;
     // events
-    window.addEventListener('pointermove', (e) => {
+    renderer.domElement.addEventListener('pointermove', (e) => {
         //Set the mouse's 2D position in the render frame in NDC coords
-        mouse.set(((e.clientX - renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1, -((e.clientY - renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1);
-        console.log(((e.clientX - renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1, -((e.clientY - renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1);
+        const { left, top } = e.target.getBoundingClientRect();
+        const mouseX = e.clientX - left;
+        const mouseY = e.clientY - top;
+        const normalizedMouseX = mouseX / renderer.domElement.clientWidth;
+        const normalizedMouseY = mouseY / renderer.domElement.clientHeight;
+        const translatedNormalizedMouseX = 2 * normalizedMouseX - 1;
+        const translatedNormalizedMouseY = -(2 * normalizedMouseY - 1);
+        mouse.set(translatedNormalizedMouseX, translatedNormalizedMouseY);
         raycaster.setFromCamera(mouse, view_camera)
+
         intersects = raycaster.intersectObjects(scene.children, true)
-        console.log("before", hovered);
         // If a previously hovered item is not among the hits we must call onPointerOut
         Object.keys(hovered).forEach((key) => {
             const hit = intersects.find((hit) => hit.object.uuid === key)
             if (hit === undefined) {
                 const hoveredItem = hovered[key]
-            if (hoveredItem.object.onPointerOver) {
-                hoveredItem.object.onPointerOut(hoveredItem)
+                if (hoveredItem.object.onPointerOut) {
+                    hoveredItem.object.onPointerOut(hoveredItem)
+                }
                 delete hovered[key]
             }
-            }
         })
-        console.log("after", hovered)
         intersects.forEach((hit) => {
             // If a hit has not been flagged as hovered we must call onPointerOver
             if (!hovered[hit.object.uuid]) {
@@ -252,17 +227,29 @@ function setup(load_env = false) {
         })
     })
 
-    window.addEventListener('click', (e) => {
-    intersects.forEach((hit) => {
+    renderer.domElement.addEventListener("click", (e) => {
+      deactivateAllSensors();
+      intersects.forEach((hit) => {
         // Call onClick
         if (hit.object.onClick) {
-            hit.object.onClick(hit)
-            active_sensor = hit.object
-            updateSlidersFromSensor()
+          hit.object.onClick(hit);
+          active_sensor = hit.object;
+          updateSlidersFromSensor();
+          hit.object.updateColor(true);
         }
-    })
-    })
+      });
+    });
 };
+
+/** Set all sensors to inactive */
+function deactivateAllSensors() {
+    sensors.forEach((sensor) => {
+        if (sensor.active) {
+            sensor.active = false;
+            sensor.updateColor(false);
+        }
+    });
+}
 
 function updateSensorPosition() {
     /*
@@ -314,9 +301,9 @@ function addListeners(){
     document.getElementById('yaw-slider').addEventListener('input', updateSensorPosition);
     document.getElementById('fov-slider').addEventListener('input', updateSensorPosition);
     var exists = document.getElementById('add-sensor')
-    if (exists) { document.getElementById('add-sensor').addEventListener('click', addPhotoreceptor); };
+    if (exists) { document.getElementById('add-sensor').addEventListener('click', () => addSensor(false)); };
     var exists = document.getElementById('add-camera')
-    if (exists) { document.getElementById('add-camera').addEventListener('click', addCamera); };
+    if (exists) { document.getElementById('add-camera').addEventListener('click', () => addSensor(true)); };
     document.getElementById('remove-sensor').addEventListener('click', removeSensor);
     document.getElementById('disable-viz').addEventListener('click', disableViz);
 };
