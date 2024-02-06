@@ -19,7 +19,7 @@ export class Sensor extends THREE.Mesh {
       this.rotation.x = -Math.PI / 2
       this.position.y = y
       this.position.z = ROBOT_RADIUS + 0.5 * SENSOR_HEIGHT
-      this.active_color = 'yellow'
+      this.active_color = 'pink'
       this.fov = 90
     }
   

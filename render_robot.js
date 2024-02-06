@@ -27,16 +27,14 @@ let hovered = {};
 function updateSlidersFromSensor() {
     // Update position sliders
     document.getElementById('x-slider').value = active_sensor.position.x;
-    document.getElementById('y-slider').value = active_sensor.position.y;
+    document.getElementById('y-slider').value = active_sensor.position.y + 2;
     document.getElementById('z-slider').value = active_sensor.position.z;
 
     // Update orientation sliders
     var euler = new THREE.Euler();
     euler.setFromQuaternion(active_sensor.quaternion, 'XYZ');
     document.getElementById('pitch-slider').value = euler.x;
-    console.log("update slider from sensor pitch", euler.x)
     document.getElementById('yaw-slider').value = euler.y;
-    // Assuming you have a FOV value stored in the sensor object
     document.getElementById('fov-slider').value = active_sensor.fov;
 };
 
@@ -172,7 +170,7 @@ function setup(load_env = false) {
         );
         loader.load(
             // resource URL
-            'data/mp3d_2.glb',
+            'data/len_2.0_rem_0.6_config_0.glb',
             //'data/empty_room_20_20.glb',
             function ( gltf ) {
                 gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
@@ -203,8 +201,8 @@ function setup(load_env = false) {
     robot = new THREE.Mesh( geometry, material );
     // Set robot position
     robot.position.y = ROBOT_HEIGHT / 2;
-    robot.position.x = 2;
-    robot.position.z = 2;
+    robot.position.x = 0;
+    robot.position.z = 0;
     scene.add(robot);
 
     // Create a cone sensor, add to sensors list
@@ -227,19 +225,22 @@ function setup(load_env = false) {
     window.addEventListener('pointermove', (e) => {
         //Set the mouse's 2D position in the render frame in NDC coords
         mouse.set(((e.clientX - renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1, -((e.clientY - renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1);
+        console.log(((e.clientX - renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1, -((e.clientY - renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1);
         raycaster.setFromCamera(mouse, view_camera)
         intersects = raycaster.intersectObjects(scene.children, true)
-
+        console.log("before", hovered);
         // If a previously hovered item is not among the hits we must call onPointerOut
         Object.keys(hovered).forEach((key) => {
             const hit = intersects.find((hit) => hit.object.uuid === key)
             if (hit === undefined) {
-            const hoveredItem = hovered[key]
-            if (hoveredItem.object.onPointerOver) hoveredItem.object.onPointerOut(hoveredItem)
-            delete hovered[key]
+                const hoveredItem = hovered[key]
+            if (hoveredItem.object.onPointerOver) {
+                hoveredItem.object.onPointerOut(hoveredItem)
+                delete hovered[key]
+            }
             }
         })
-
+        console.log("after", hovered)
         intersects.forEach((hit) => {
             // If a hit has not been flagged as hovered we must call onPointerOver
             if (!hovered[hit.object.uuid]) {
@@ -328,6 +329,6 @@ function animate() {
     //sensor_renderer.render(scene, sensor_camera);
 };
 
-setup(true);
+setup(false);
 addListeners();
 animate();
