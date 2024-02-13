@@ -26,7 +26,7 @@ let hovered = {};
 function updateSlidersFromSensor() {
     // Update position sliders
     document.getElementById('x-slider').value = active_sensor.position.x;
-    document.getElementById('y-slider').value = active_sensor.position.y + 2;
+    document.getElementById('y-slider').value = active_sensor.position.y;
     document.getElementById('z-slider').value = active_sensor.position.z;
 
     // Update orientation sliders
