@@ -1,25 +1,23 @@
 import * as THREE from 'three';
 
-const ROBOT_RADIUS = 1;
-const ROBOT_HEIGHT = 5;
+export const ROBOT_RADIUS = 0.5;
+export const ROBOT_HEIGHT = 4;
 
 const SENSOR_RADIUS = 0.5;
 const SENSOR_HEIGHT = 1;
-const color = "yellow";
-const camera_color = "blue"
-const SENSOR_MATERIAL = new THREE.MeshStandardMaterial({ color: new THREE.Color(color).convertSRGBToLinear() }); // new THREE.MeshPhongMaterial( {color: 0xffff00} );
-const CAMERA_MATERIAL = new THREE.MeshStandardMaterial({ color: new THREE.Color(camera_color).convertSRGBToLinear() }); 
+const SENSOR_COLOR = "yellow";
+const CAMERA_COLOR = "blue"
+const ACTIVE_COLOR = "pink";
 
 export class Sensor extends THREE.Mesh {
     constructor(y = 0) {
       super()
       this.geometry = new THREE.ConeGeometry( SENSOR_RADIUS, SENSOR_HEIGHT, 32 )
-      this.material = SENSOR_MATERIAL
+      this.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(SENSOR_COLOR).convertSRGBToLinear() });
       this.active = false
       this.rotation.x = -Math.PI / 2
       this.position.y = y
       this.position.z = ROBOT_RADIUS + 0.5 * SENSOR_HEIGHT
-      this.active_color = 'hotpink'
       this.fov = 90
     }
   
@@ -33,30 +31,40 @@ export class Sensor extends THREE.Mesh {
       this.scale.z = scale
       this.fov = fov
     }
+
+    updateColor(isHovered) {
+      if (!this.active) {
+          this.material.color.set(SENSOR_COLOR)
+      } else {
+          this.material.color.set(ACTIVE_COLOR)
+      } 
+      if (isHovered) {
+          this.material.color.convertSRGBToLinear()
+      } 
+    }
   
     onPointerOver(e) {
-      this.material.color.set(this.color)
+      if (!this.active) {
+        this.material.color.set(SENSOR_COLOR)
+      }
+      else {
+        this.material.color.set(ACTIVE_COLOR)
+      }
       this.material.color.convertSRGBToLinear()
     }
   
     onPointerOut(e) {
       if (!this.active) {
-        this.material.color.set(color)
-        this.material.color.convertSRGBToLinear()
+        this.material.color.set(SENSOR_COLOR)
       }
       else {
-        this.material.color.set(this.color)
+        this.material.color.set(ACTIVE_COLOR)
       }
     }
   
     onClick(e) {
       this.active = !this.active
-      if (this.active) {
-        this.material.color.set(this.color)
-      }
-      else {
-        this.material.color.set(color)
-      }
+      this.updateColor(false);
     }
 };
 
@@ -64,6 +72,6 @@ export class Camera extends Sensor {
   constructor() {
     super()
     this.geometry = new THREE.ConeGeometry(SENSOR_RADIUS * 2, SENSOR_HEIGHT * 2, 4)
-    this.material = CAMERA_MATERIAL
+    this.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(CAMERA_COLOR).convertSRGBToLinear()})
   }
 }

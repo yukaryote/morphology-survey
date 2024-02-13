@@ -1,12 +1,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Sensor, Camera } from './sensors.js'
+import { Sensor, Camera, ROBOT_HEIGHT, ROBOT_RADIUS } from './sensors.js'
 
 //import ViewCube from 'three-viewcube';
-
-const ROBOT_RADIUS = 1;
-const ROBOT_HEIGHT = 5;
 
 var controls;
 var renderer;
@@ -19,7 +16,6 @@ var width = window.innerWidth
 var height = window.innerHeight
 
 const sensors = new Map();
-var sensor_id = 0;
 var active_sensor;
 const raycaster = new THREE.Raycaster()
 const mouse = new THREE.Vector2()
@@ -30,26 +26,36 @@ let hovered = {};
 function updateSlidersFromSensor() {
     // Update position sliders
     document.getElementById('x-slider').value = active_sensor.position.x;
-    document.getElementById('y-slider').value = active_sensor.position.y;
+    document.getElementById('y-slider').value = active_sensor.position.y + 2;
     document.getElementById('z-slider').value = active_sensor.position.z;
 
     // Update orientation sliders
     var euler = new THREE.Euler();
     euler.setFromQuaternion(active_sensor.quaternion, 'XYZ');
     document.getElementById('pitch-slider').value = euler.x;
-    console.log("update slider from sensor pitch", euler.x)
     document.getElementById('yaw-slider').value = euler.y;
-    // Assuming you have a FOV value stored in the sensor object
     document.getElementById('fov-slider').value = active_sensor.fov;
 };
 
 
-function addPhotoreceptor() {
+function addSensor(isCamera) {
     // Create a cone sensor
-    var cone = new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
+    var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2) : new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
     robot.add( cone );
     var sensorAxesHelper = new THREE.AxesHelper();
     cone.add(sensorAxesHelper)
+
+    const dir = new THREE.Vector3( 0, -1, 0 );
+
+    //normalize the direction vector (convert to vector of length 1)
+    dir.normalize();
+
+    const origin = new THREE.Vector3( 0, 0, 0 );
+    const length = 1.5;
+    const hex = 0xffff00;
+
+    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+    cone.add( arrowHelper );
 
     // add camera to sensor. In this case, it'll just average out all the pixels
     sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -58,47 +64,18 @@ function addPhotoreceptor() {
     sensor_camera.position.z = cone.position.z;
     cone.add(sensor_camera);
 
-    sensors.set(sensor_id, cone);
     // deactivate all other sensors
     sensors.forEach((sensor) => {
-        if (!sensor.active) {
-            sensor.onClick()
-        }
+        sensor.active = false;
+        sensor.updateColor(false);
     });
+
+    sensors.set(cone.uuid, cone);
     cone.onClick();
+    cone.active = true;
+    cone.updateColor(false);
     active_sensor = cone;
     updateSlidersFromSensor();
-    sensor_id++;
-
-    // TODO: turn all sliders to default values
-    return cone
-};
-
-function addCamera() {
-    // Create a cone sensor
-    var cone = new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
-    robot.add( cone );
-    var sensorAxesHelper = new THREE.AxesHelper();
-    cone.add(sensorAxesHelper)
-
-    // add camera to sensor
-    sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    sensor_camera.rotation.x = cone.rotation.x;
-    sensor_camera.rotation.z = Math.PI;
-    sensor_camera.position.z = cone.position.z;
-    cone.add(sensor_camera);
-
-    sensors.set(sensor_id, cone);
-    // deactivate all other sensors
-    sensors.forEach((sensor) => {
-        if (!sensor.active) {
-            sensor.onClick()
-        }
-    });
-    cone.onClick();
-    active_sensor = cone;
-    updateSlidersFromSensor();
-    sensor_id++;
 
     // TODO: turn all sliders to default values
     return cone
@@ -110,7 +87,7 @@ function removeSensor() {
 };
 
 
-function setup() {
+function setup(load_env = false) {
     scene = new THREE.Scene();
     view_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     renderer = new THREE.WebGLRenderer();
@@ -135,42 +112,71 @@ function setup() {
     scene.add( axesHelper );
 
     //load env
-    loader.load(
-        // resource URL
-        //'data/len_2.0_rem_0.6_config_0.glb',
-        'data/empty_room_20_20.glb',
-        function ( gltf ) {
-            gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
-            gltf.scene.position.y -= ROBOT_HEIGHT / 2;
-            gltf.scene.position.x -= 2;   
-            gltf.scene.position.z -= 2; 
-            gltf.scene.scale.x *= 2;
-            gltf.scene.scale.y *= 2;
-            gltf.scene.scale.z *= 2;
-            scene.add( gltf.scene );
+    if (load_env == true) {
+        //load sphere
+        loader.load(
+            // resource URL
+            'data/green_sphere.glb',
+            //'data/empty_room_20_20.glb',
+            function ( gltf ) {
+                gltf.scene.position.y -= ROBOT_HEIGHT / 2
+                gltf.scene.position.y += 1.5;
+                gltf.scene.position.x -= 3;   
+                gltf.scene.position.z -= 3; 
+                scene.add( gltf.scene );
 
-            gltf.animations; // Array<THREE.AnimationClip>
-            gltf.scene; // THREE.Group
-            gltf.scenes; // Array<THREE.Group>
-            gltf.cameras; // Array<THREE.Camera>
-            gltf.asset; // Object
-        },
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        function ( error ) {
-            console.log( 'An error happened' );
-        }
-    );
+                gltf.animations; // Array<THREE.AnimationClip>
+                gltf.scene; // THREE.Group
+                gltf.scenes; // Array<THREE.Group>
+                gltf.cameras; // Array<THREE.Camera>
+                gltf.asset; // Object
+            },
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            function ( error ) {
+                console.log( 'An error happened' );
+            }
+        );
+        loader.load(
+            // resource URL
+            'data/len_2.0_rem_0.6_config_0.glb',
+            //'data/empty_room_20_20.glb',
+            function ( gltf ) {
+                gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
+                gltf.scene.position.y -= ROBOT_HEIGHT / 2;
+                gltf.scene.position.x -= 2;   
+                gltf.scene.position.z -= 2; 
+                scene.add( gltf.scene );
+
+                gltf.animations; // Array<THREE.AnimationClip>
+                gltf.scene; // THREE.Group
+                gltf.scenes; // Array<THREE.Group>
+                gltf.cameras; // Array<THREE.Camera>
+                gltf.asset; // Object
+            },
+            function ( xhr ) {
+                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+            },
+            function ( error ) {
+                console.log( 'An error happened' );
+                console.log(error);
+            }
+        );
+    }
 
     // Create a cylinder
     var geometry = new THREE.CylinderGeometry(ROBOT_RADIUS, ROBOT_RADIUS, ROBOT_HEIGHT, 32);
     const material = new THREE.MeshPhongMaterial();
     robot = new THREE.Mesh( geometry, material );
+    // Set robot position
+    robot.position.y = ROBOT_HEIGHT / 2;
+    robot.position.x = 0;
+    robot.position.z = 0;
     scene.add(robot);
 
     // Create a cone sensor, add to sensors list
-    var cone = addPhotoreceptor(robot)
+    var _ = addSensor(false);
 
     // These are the default camera positions we can got to: home, side view, top view
     const camera_positions = [
@@ -186,22 +192,30 @@ function setup() {
     controls.enablePan = false;
     controls.enableDamping = true;
     // events
-    window.addEventListener('pointermove', (e) => {
+    renderer.domElement.addEventListener('pointermove', (e) => {
         //Set the mouse's 2D position in the render frame in NDC coords
-        mouse.set(((e.clientX - renderer.domElement.offsetLeft) / renderer.domElement.clientWidth) * 2 - 1, -((e.clientY - renderer.domElement.offsetTop) / renderer.domElement.clientHeight) * 2 + 1);
+        const { left, top } = e.target.getBoundingClientRect();
+        const mouseX = e.clientX - left;
+        const mouseY = e.clientY - top;
+        const normalizedMouseX = mouseX / renderer.domElement.clientWidth;
+        const normalizedMouseY = mouseY / renderer.domElement.clientHeight;
+        const translatedNormalizedMouseX = 2 * normalizedMouseX - 1;
+        const translatedNormalizedMouseY = -(2 * normalizedMouseY - 1);
+        mouse.set(translatedNormalizedMouseX, translatedNormalizedMouseY);
         raycaster.setFromCamera(mouse, view_camera)
-        intersects = raycaster.intersectObjects(scene.children, true)
 
+        intersects = raycaster.intersectObjects(scene.children, true)
         // If a previously hovered item is not among the hits we must call onPointerOut
         Object.keys(hovered).forEach((key) => {
             const hit = intersects.find((hit) => hit.object.uuid === key)
             if (hit === undefined) {
-            const hoveredItem = hovered[key]
-            if (hoveredItem.object.onPointerOver) hoveredItem.object.onPointerOut(hoveredItem)
-            delete hovered[key]
+                const hoveredItem = hovered[key]
+                if (hoveredItem.object.onPointerOut) {
+                    hoveredItem.object.onPointerOut(hoveredItem)
+                }
+                delete hovered[key]
             }
         })
-
         intersects.forEach((hit) => {
             // If a hit has not been flagged as hovered we must call onPointerOver
             if (!hovered[hit.object.uuid]) {
@@ -213,17 +227,29 @@ function setup() {
         })
     })
 
-    window.addEventListener('click', (e) => {
-    intersects.forEach((hit) => {
+    renderer.domElement.addEventListener("click", (e) => {
+      deactivateAllSensors();
+      intersects.forEach((hit) => {
         // Call onClick
         if (hit.object.onClick) {
-            hit.object.onClick(hit)
-            active_sensor = hit.object
-            updateSlidersFromSensor()
+          hit.object.onClick(hit);
+          active_sensor = hit.object;
+          updateSlidersFromSensor();
+          hit.object.updateColor(true);
         }
-    })
-    })
+      });
+    });
 };
+
+/** Set all sensors to inactive */
+function deactivateAllSensors() {
+    sensors.forEach((sensor) => {
+        if (sensor.active) {
+            sensor.active = false;
+            sensor.updateColor(false);
+        }
+    });
+}
 
 function updateSensorPosition() {
     /*
@@ -275,9 +301,9 @@ function addListeners(){
     document.getElementById('yaw-slider').addEventListener('input', updateSensorPosition);
     document.getElementById('fov-slider').addEventListener('input', updateSensorPosition);
     var exists = document.getElementById('add-sensor')
-    if (exists) { document.getElementById('add-sensor').addEventListener('click', addPhotoreceptor); };
+    if (exists) { document.getElementById('add-sensor').addEventListener('click', () => addSensor(false)); };
     var exists = document.getElementById('add-camera')
-    if (exists) { document.getElementById('add-camera').addEventListener('click', addCamera); };
+    if (exists) { document.getElementById('add-camera').addEventListener('click', () => addSensor(true)); };
     document.getElementById('remove-sensor').addEventListener('click', removeSensor);
     document.getElementById('disable-viz').addEventListener('click', disableViz);
 };
@@ -290,6 +316,6 @@ function animate() {
     //sensor_renderer.render(scene, sensor_camera);
 };
 
-setup();
+setup(false);
 addListeners();
 animate();
