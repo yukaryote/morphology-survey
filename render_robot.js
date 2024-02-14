@@ -28,6 +28,9 @@ function updateSlidersFromSensor() {
     document.getElementById('x-slider').value = active_sensor.position.x;
     document.getElementById('y-slider').value = active_sensor.position.y;
     document.getElementById('z-slider').value = active_sensor.position.z;
+    document.getElementById('x-input').value = active_sensor.position.x;
+    document.getElementById('y-input').value = active_sensor.position.y;
+    document.getElementById('z-input').value = active_sensor.position.z;
 
     // Update orientation sliders
     var euler = new THREE.Euler();
@@ -35,6 +38,9 @@ function updateSlidersFromSensor() {
     document.getElementById('pitch-slider').value = euler.x;
     document.getElementById('yaw-slider').value = euler.y;
     document.getElementById('fov-slider').value = active_sensor.fov;
+    document.getElementById('pitch-input').value = euler.x;
+    document.getElementById('yaw-input').value = euler.y;
+    document.getElementById('fov-input').value = active_sensor.fov;
 };
 
 
@@ -284,7 +290,46 @@ function updateSensorPosition() {
 
     // Set FOV (the size of the cone circle)
     sensor.setFOV(fov);
+    updateSensorPositionText();
 };
+
+
+function updateSensorPositionText() {
+    /*
+    Here, we want to change the xyz coordinates globally, and change pitch + yaw locally.
+    */
+    var sensor = active_sensor;
+    const x = parseFloat(document.getElementById('x-input').value);
+    const y = parseFloat(document.getElementById('y-input').value);
+    const z = parseFloat(document.getElementById('z-input').value);
+    const pitch = parseFloat(document.getElementById('pitch-input').value);
+    const yaw = parseFloat(document.getElementById('yaw-input').value);
+    const fov = parseFloat(document.getElementById('fov-input').value);
+    
+    sensor.position.x = x;
+    sensor.position.y = y;
+    sensor.position.z = z;
+
+    // Set yaw globally and pitch locally (since we don't care about roll we can set yaw globally)
+    var quaternion = new THREE.Quaternion();
+    quaternion.setFromEuler(new THREE.Euler(0, 0, 0, 'XYZ')); // Initialize quaternion
+
+    // Apply yaw (rotation around Y) in the global coordinate frame
+    var yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    quaternion.multiply(yawQuaternion);
+
+    // Apply pitch (rotation around X) in the local coordinate frame
+    var pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+    quaternion.multiply(pitchQuaternion);
+
+    // Set the object's rotation from the quaternion
+    sensor.rotation.setFromQuaternion(quaternion);
+
+    // Set FOV (the size of the cone circle)
+    sensor.setFOV(fov);
+    updateSlidersFromSensor();
+};
+
 
 function disableViz() {
     robot.children.forEach((sensor) => {
@@ -294,12 +339,25 @@ function disableViz() {
 
 function addListeners(){
     // Add event listeners to update the camera position when sliders are moved
-    document.getElementById('x-slider').addEventListener('input', updateSensorPosition);
-    document.getElementById('y-slider').addEventListener('input', updateSensorPosition);
-    document.getElementById('z-slider').addEventListener('input', updateSensorPosition);
-    document.getElementById('pitch-slider').addEventListener('input', updateSensorPosition);
-    document.getElementById('yaw-slider').addEventListener('input', updateSensorPosition);
-    document.getElementById('fov-slider').addEventListener('input', updateSensorPosition);
+    const pos_names = ['x', 'y', 'z', 'pitch', 'yaw', 'fov'];
+    for (let i = 0; i < pos_names.length; i++) {
+        document.getElementById(pos_names[i].concat('-', 'slider')).addEventListener('input', updateSensorPosition);
+        document.getElementById(pos_names[i].concat('-', 'input')).addEventListener('keypress', function(e) {
+            // check if the element is an `input` element and the key is `enter`
+            console.log(e)
+            if(e.target.nodeName === "INPUT" && e.key === 'Enter') {
+              updateSensorPositionText();
+            }
+        });
+    };
+    document.getElementById('x-input').addEventListener('keypress', function(e) {
+        // check if the element is an `input` element and the key is `enter`
+        console.log(e)
+        if(e.target.nodeName === "INPUT" && e.key === 'Enter') {
+          updateSensorPositionText();
+        }
+    });
+    
     var exists = document.getElementById('add-sensor')
     if (exists) { document.getElementById('add-sensor').addEventListener('click', () => addSensor(false)); };
     var exists = document.getElementById('add-camera')

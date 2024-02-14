@@ -73,4 +73,6 @@ button:hover {
     background: #251564;
 }
 
-
+.text-input {
+    width: 10%
+}
