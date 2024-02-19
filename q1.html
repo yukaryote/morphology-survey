@@ -6,6 +6,7 @@
   <title>Robot Camera Control</title>
 </head>
 <body>
+    <canvas id="c"></canvas>
     <div id="title">
         <h1>Question 1: Optimize design and placement of single cameras</h1>
     </div>
@@ -19,40 +20,186 @@
         <p>You can change the view of the robot by holding left-click in the viewport and dragging.</p>
     </div>
 
-    <div id="container">
+    <div id="q1">
         <div id="render"></div>
         <div id="sensor-render"></div>
+        <div id="q1-controls" class="controls">
+            <button id="disable-viz">Disable visualization</button>
+            <br>
+            <label for="x-slider">X:</label>
+            <input type="range" id="x-slider" min="-1" max="1" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="x-input" oninput="this.previousSibling.value = this.value"> meters
+            <br>
+            <label for="y-slider">Y:</label>
+            <input type="range" id="y-slider" min="-2" max="2" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="y-input"> meters
+            <br>
+            <label for="z-slider">Z:</label>
+            <input type="range" id="z-slider" min="-1" max="1" step="0.001" value="1" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="z-input"> meters
+            <br>
+            <label for="pitch-slider">Pitch:</label>
+            <input type="range" id="pitch-slider" min="-3.1415" max="3.1415" step="0.1" value="-1.57075" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="pitch-input"> radians
+            <br>
+            <label for="yaw-slider">Yaw:</label>
+            <input type="range" id="yaw-slider" min="-3.1415" max="3.1415" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="yaw-input"> radians
+            <br>
+            <label for="fov-slider">FOV:</label>
+            <input type="range" id="fov-slider" min="0" max="180" step="1" value="90" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="fov-input"> degrees
+            <br>
+            <a href="index.html"><button id="prev">Previous</button></a>
+            <a href="#q2"><button id="next">Next</button></a>
+        </div>
     </div>
-    <div id="controls-container">
-        <button id="remove-sensor">Remove active sensor</button>
-        <button id="disable-viz">Disable visualization</button>
-        <br>
-        <label for="x-slider">X:</label>
-        <input type="range" id="x-slider" min="-10" max="10" step="0.01" value="0" oninput="this.nextElementSibling.value = this.value">
-        <input type="text" class="text-input" id="x-input"> meters
-        <br>
-        <label for="y-slider">Y:</label>
-        <input type="range" id="y-slider" min="-2.5" max="2.5" step="0.01" value="0" oninput="this.nextElementSibling.value = this.value">
-        <input type="text" class="text-input" id="y-input"> meters
-        <br>
-        <label for="z-slider">Z:</label>
-        <input type="range" id="z-slider" min="-10" max="10" step="0.01" value="1" oninput="this.nextElementSibling.value = this.value">
-        <input type="text" class="text-input" id="z-input"> meters
-        <br>
-        <label for="pitch-slider">Pitch:</label>
-        <input type="range" id="pitch-slider" min="-3.1415" max="3.1415" step="0.1" value="-1.57075" oninput="this.nextElementSibling.value = this.value">
-        <input type="text" class="text-input" id="pitch-input"> radians
-        <br>
-        <label for="yaw-slider">Yaw:</label>
-        <input type="range" id="yaw-slider" min="-3.1415" max="3.1415" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
-        <input type="text" class="text-input" id="yaw-input"> radians
-        <br>
-        <label for="fov-slider">FOV:</label>
-        <input type="range" id="fov-slider" min="0" max="180" step="1" value="90" oninput="this.nextElementSibling.value = this.value">
-        <input type="text" class="text-input" id="fov-input"> degrees
-        <br>
-        <a href="index.html"><button id="prev">Previous</button></a>
-        <a href="q2.html"><button id="next">Next</button></a>
+    <div id="title">
+        <h1>Question 2: Optimize design and placement of 2 photoreceptors</h1>
+    </div>
+    <div id="description">
+        <p>The image below is an interactive 3D render of a robot (the cylinder) in a maze-like environment. 
+            Its task is to find the green ball in the maze. The walls of the maze are 2 meters tall. 
+            The ball is positioned at 1.5 meters above the ground and has radius 0.5 meters.
+            The robot is on the ground and has actions {move forward 0.1 meters, turn left 10 degrees, turn right 10 degrees}. The robot has height 4 meters, so the max height of a sensor is 4 meters.
+        Your task is to optimize the camera parameters below to allow the robot to find the ball as quickly as possible.
+        Adjust the XYZ position and pitch/yaw of the camera shown in the viewport. X = red, Y = green, Z = blue.</p>
+        <p>You can change the view of the robot by holding left-click in the viewport and dragging.</p>
+    </div>
+    <div id="q2">
+        <div id="render"></div>
+        <div id="sensor-render"></div>
+        <div id="q2-controls" class="controls">
+            <button id="add-sensor">Add sensor</button>
+            <button id="remove-sensor">Remove active sensor</button>
+            <button id="disable-viz">Disable visualization</button>
+            <br>
+            <label for="x-slider">X:</label>
+            <input type="range" id="x-slider" min="-1" max="1" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="x-input"> meters
+            <br>
+            <label for="y-slider">Y:</label>
+            <input type="range" id="y-slider" min="-2" max="2" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="y-input"> meters
+            <br>
+            <label for="z-slider">Z:</label>
+            <input type="range" id="z-slider" min="-1" max="1" step="0.001" value="1" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="z-input"> meters
+            <br>
+            <label for="pitch-slider">Pitch:</label>
+            <input type="range" id="pitch-slider" min="-3.1415" max="3.1415" step="0.1" value="-1.57075" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="pitch-input"> radians
+            <br>
+            <label for="yaw-slider">Yaw:</label>
+            <input type="range" id="yaw-slider" min="-3.1415" max="3.1415" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="yaw-input"> radians
+            <br>
+            <label for="fov-slider">FOV:</label>
+            <input type="range" id="fov-slider" min="0" max="180" step="1" value="90" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="fov-input"> degrees
+            <br>
+            <a href="#q1"><button id="prev">Previous</button></a>
+            <a href="#q3"><button id="next">Next</button></a>
+        </div>
+    </div>
+    <div id="title">
+        <h1>Question 3: Optimize design and placement of 4 photoreceptors</h1>
+    </div>
+    <div id="description">
+        <p>The image below is an interactive 3D render of a robot (the cylinder) in a maze-like environment. 
+            Its task is to find the green ball in the maze. The walls of the maze are 2 meters tall. 
+            The ball is positioned at 1.5 meters above the ground and has radius 0.5 meters.
+            The robot is on the ground and has actions {move forward 0.1 meters, turn left 10 degrees, turn right 10 degrees}. The robot has height 4 meters, so the max height of a sensor is 4 meters.
+        Your task is to optimize the camera parameters below to allow the robot to find the ball as quickly as possible.
+        Adjust the XYZ position and pitch/yaw of the camera shown in the viewport. X = red, Y = green, Z = blue.</p>
+        <p>You can change the view of the robot by holding left-click in the viewport and dragging.</p>
+    </div>
+
+    <div id="q3">
+        <div id="render"></div>
+        <div id="sensor-render"></div>
+        <div id="q3-controls" class="controls">
+            <button id="add-sensor">Add sensor</button>
+            <button id="remove-sensor">Remove active sensor</button>
+            <button id="disable-viz">Disable visualization</button>
+            <br>
+            <label for="x-slider">X:</label>
+            <input type="range" id="x-slider" min="-1" max="1" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="x-input"> meters
+            <br>
+            <label for="y-slider">Y:</label>
+            <input type="range" id="y-slider" min="-2" max="2" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="y-input"> meters
+            <br>
+            <label for="z-slider">Z:</label>
+            <input type="range" id="z-slider" min="-1" max="1" step="0.001" value="1" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="z-input"> meters
+            <br>
+            <label for="pitch-slider">Pitch:</label>
+            <input type="range" id="pitch-slider" min="-3.1415" max="3.1415" step="0.1" value="-1.57075" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="pitch-input"> radians
+            <br>
+            <label for="yaw-slider">Yaw:</label>
+            <input type="range" id="yaw-slider" min="-3.1415" max="3.1415" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="yaw-input"> radians
+            <br>
+            <label for="fov-slider">FOV:</label>
+            <input type="range" id="fov-slider" min="0" max="180" step="1" value="90" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="fov-input"> degrees
+            <br>
+            <a href="#q2"><button id="prev">Previous</button></a>
+            <a href="#q4"><button id="next">Next</button></a>
+        </div>
+    </div>
+    <div id="title">
+        <h1>Question 4: Optimize design and placement of 8 photoreceptors</h1>
+    </div>
+    <div id="description">
+        <p>The image below is an interactive 3D render of a robot (the cylinder) in a maze-like environment. 
+            Its task is to find the green ball in the maze. The walls of the maze are 2 meters tall. 
+            The ball is positioned at 1.5 meters above the ground and has radius 0.5 meters.
+            The robot is on the ground and has actions {move forward 0.1 meters, turn left 10 degrees, turn right 10 degrees}. The robot has height 4 meters, so the max height of a sensor is 4 meters.
+        Your task is to optimize the camera parameters below to allow the robot to find the ball as quickly as possible.
+        Adjust the XYZ position and pitch/yaw of the camera shown in the viewport. X = red, Y = green, Z = blue.</p>
+        <p>You can change the view of the robot by holding left-click in the viewport and dragging.</p>
+    </div>
+    
+    <div id="q4">
+        <div id="render"></div>
+        <div id="sensor-render"></div>
+        <div id="q4-controls" class="controls">
+            <button id="add-sensor">Add sensor</button>
+            <button id="remove-sensor">Remove active sensor</button>
+            <button id="disable-viz">Disable visualization</button>
+            <br>
+            <label for="x-slider">X:</label>
+            <input type="range" id="x-slider" min="-1" max="1" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="x-input"> meters
+            <br>
+            <label for="y-slider">Y:</label>
+            <input type="range" id="y-slider" min="-2" max="2" step="0.001" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="y-input"> meters
+            <br>
+            <label for="z-slider">Z:</label>
+            <input type="range" id="z-slider" min="-1" max="1" step="0.001" value="1" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="z-input"> meters
+            <br>
+            <label for="pitch-slider">Pitch:</label>
+            <input type="range" id="pitch-slider" min="-3.1415" max="3.1415" step="0.1" value="-1.57075" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="pitch-input"> radians
+            <br>
+            <label for="yaw-slider">Yaw:</label>
+            <input type="range" id="yaw-slider" min="-3.1415" max="3.1415" step="0.1" value="0" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="yaw-input"> radians
+            <br>
+            <label for="fov-slider">FOV:</label>
+            <input type="range" id="fov-slider" min="0" max="180" step="1" value="90" oninput="this.nextElementSibling.value = this.value">
+            <input type="text" class="text-input" id="fov-input"> degrees
+            <br>
+            <a href="#q3"><button id="prev">Previous</button></a>
+            <a href="#q1"><button id="next-level">Next level</button></a>
+            <a href="index.html"><button id="submit">Submit</button></a>
+        </div>
     </div>
     <script type="importmap">
 			{

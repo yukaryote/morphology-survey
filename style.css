@@ -25,7 +25,7 @@ body {
     background-color: #fff;
 }
 
-#controls-container {
+.controls {
     display: center;
     flex-direction: column;
     justify-content: center;
@@ -36,13 +36,13 @@ body {
     margin: auto;
 }
 
-#controls-container label {
+.controls label {
     display: inline-block;
     width: 50px;
     text-align: right;
 }
 
-#controls-container input[type="range"] {
+.controls input[type="range"] {
     display: inline-block;
     width: 50%;
     margin: 10px auto;
@@ -50,9 +50,9 @@ body {
     background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
 }
 
-#controls-container output {
+.controls output {
     display: inline-block;
-    width: 100px;
+    width: 10%;
     text-align: right;
 }
 

@@ -3,8 +3,6 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Sensor, Camera, ROBOT_HEIGHT, ROBOT_RADIUS } from './sensors.js'
 
-//import ViewCube from 'three-viewcube';
-
 var controls;
 var renderer;
 var view_camera;
@@ -21,6 +19,10 @@ const raycaster = new THREE.Raycaster()
 const mouse = new THREE.Vector2()
 let intersects = [];
 let hovered = {};
+let level = 1;
+
+//results
+var results = {};
 
 
 function updateSlidersFromSensor() {
@@ -33,6 +35,7 @@ function updateSlidersFromSensor() {
     document.getElementById('z-input').value = active_sensor.position.z;
 
     // Update orientation sliders
+    // get pitch locally and yaw globally
     var euler = new THREE.Euler();
     euler.setFromQuaternion(active_sensor.quaternion, 'XYZ');
     document.getElementById('pitch-slider').value = euler.x;
@@ -93,11 +96,10 @@ function removeSensor() {
 };
 
 
-function setup(load_env = false) {
+function setup() {
     scene = new THREE.Scene();
     view_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
     renderer = new THREE.WebGLRenderer();
-    const loader = new GLTFLoader();
 
     //sensor_renderer = new THREE.WebGLRenderer();
     renderer.setSize(400, 400);
@@ -116,60 +118,6 @@ function setup(load_env = false) {
     //viz axes
     const axesHelper = new THREE.AxesHelper( 5 );
     scene.add( axesHelper );
-
-    //load env
-    if (load_env == true) {
-        //load sphere
-        loader.load(
-            // resource URL
-            'data/green_sphere.glb',
-            //'data/empty_room_20_20.glb',
-            function ( gltf ) {
-                gltf.scene.position.y -= ROBOT_HEIGHT / 2
-                gltf.scene.position.y += 1.5;
-                gltf.scene.position.x -= 3;   
-                gltf.scene.position.z -= 3; 
-                scene.add( gltf.scene );
-
-                gltf.animations; // Array<THREE.AnimationClip>
-                gltf.scene; // THREE.Group
-                gltf.scenes; // Array<THREE.Group>
-                gltf.cameras; // Array<THREE.Camera>
-                gltf.asset; // Object
-            },
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            function ( error ) {
-                console.log( 'An error happened' );
-            }
-        );
-        loader.load(
-            // resource URL
-            'data/len_2.0_rem_0.6_config_0.glb',
-            //'data/empty_room_20_20.glb',
-            function ( gltf ) {
-                gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
-                gltf.scene.position.y -= ROBOT_HEIGHT / 2;
-                gltf.scene.position.x -= 2;   
-                gltf.scene.position.z -= 2; 
-                scene.add( gltf.scene );
-
-                gltf.animations; // Array<THREE.AnimationClip>
-                gltf.scene; // THREE.Group
-                gltf.scenes; // Array<THREE.Group>
-                gltf.cameras; // Array<THREE.Camera>
-                gltf.asset; // Object
-            },
-            function ( xhr ) {
-                console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-            },
-            function ( error ) {
-                console.log( 'An error happened' );
-                console.log(error);
-            }
-        );
-    }
 
     // Create a cylinder
     var geometry = new THREE.CylinderGeometry(ROBOT_RADIUS, ROBOT_RADIUS, ROBOT_HEIGHT, 32);
@@ -247,6 +195,61 @@ function setup(load_env = false) {
     });
 };
 
+
+function loadGLB() {
+    const loader = new GLTFLoader();
+
+    //load sphere
+    loader.load(
+        // resource URL
+        'data/green_sphere.glb',
+        //'data/empty_room_20_20.glb',
+        function ( gltf ) {
+            gltf.scene.position.y += 1.5;
+            gltf.scene.position.x += 3;   
+            gltf.scene.position.z += 3; 
+            scene.add( gltf.scene );
+
+            gltf.animations; // Array<THREE.AnimationClip>
+            gltf.scene; // THREE.Group
+            gltf.scenes; // Array<THREE.Group>
+            gltf.cameras; // Array<THREE.Camera>
+            gltf.asset; // Object
+        },
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        function ( error ) {
+            console.log( 'An error happened' );
+        }
+    );
+    loader.load(
+        // resource URL
+        'data/len_2.0_rem_0.6_config_0.glb',
+        //'data/empty_room_20_20.glb',
+        function ( gltf ) {
+            gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
+            gltf.scene.position.x -= 2;   
+            gltf.scene.position.z -= 2; 
+            scene.add( gltf.scene );
+
+            gltf.animations; // Array<THREE.AnimationClip>
+            gltf.scene; // THREE.Group
+            gltf.scenes; // Array<THREE.Group>
+            gltf.cameras; // Array<THREE.Camera>
+            gltf.asset; // Object
+        },
+        function ( xhr ) {
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        },
+        function ( error ) {
+            console.log( 'An error happened' );
+            console.log(error);
+        }
+    );
+}
+
+
 /** Set all sensors to inactive */
 function deactivateAllSensors() {
     sensors.forEach((sensor) => {
@@ -257,11 +260,37 @@ function deactivateAllSensors() {
     });
 }
 
-function updateSensorPosition() {
+function calcSensorPosition(x, y, z, pitch, yaw, fov) {
     /*
     Here, we want to change the xyz coordinates globally, and change pitch + yaw locally.
     */
+
     var sensor = active_sensor;
+
+    sensor.position.x = x;
+    sensor.position.y = y;
+    sensor.position.z = z;
+
+    // Set FOV (the size of the cone circle)
+    sensor.setFOV(fov);
+
+    // Set yaw globally and pitch locally (since we don't care about roll we can set yaw globally)
+    var quaternion = new THREE.Quaternion();
+    quaternion.setFromEuler(new THREE.Euler(0, 0, 0, 'XYZ')); // Initialize quaternion
+
+    // Apply yaw (rotation around Y) in the global coordinate frame
+    var yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    quaternion.multiply(yawQuaternion);
+
+    // Apply pitch (rotation around X) in the local coordinate frame
+    var pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+    quaternion.multiply(pitchQuaternion);
+
+    // Set the object's rotation from the quaternion
+    sensor.rotation.setFromQuaternion(quaternion);
+}
+
+function updateSensorPositionSlider() {
     const x = parseFloat(document.getElementById('x-slider').value);
     const y = parseFloat(document.getElementById('y-slider').value);
     const z = parseFloat(document.getElementById('z-slider').value);
@@ -269,36 +298,11 @@ function updateSensorPosition() {
     const yaw = parseFloat(document.getElementById('yaw-slider').value);
     const fov = parseFloat(document.getElementById('fov-slider').value);
     
-    sensor.position.x = x;
-    sensor.position.y = y;
-    sensor.position.z = z;
-
-    // Set yaw globally and pitch locally (since we don't care about roll we can set yaw globally)
-    var quaternion = new THREE.Quaternion();
-    quaternion.setFromEuler(new THREE.Euler(0, 0, 0, 'XYZ')); // Initialize quaternion
-
-    // Apply yaw (rotation around Y) in the global coordinate frame
-    var yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    quaternion.multiply(yawQuaternion);
-
-    // Apply pitch (rotation around X) in the local coordinate frame
-    var pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
-    quaternion.multiply(pitchQuaternion);
-
-    // Set the object's rotation from the quaternion
-    sensor.rotation.setFromQuaternion(quaternion);
-
-    // Set FOV (the size of the cone circle)
-    sensor.setFOV(fov);
-    updateSensorPositionText();
+    calcSensorPosition(x, y, z, pitch, yaw, fov);
 };
 
 
 function updateSensorPositionText() {
-    /*
-    Here, we want to change the xyz coordinates globally, and change pitch + yaw locally.
-    */
-    var sensor = active_sensor;
     const x = parseFloat(document.getElementById('x-input').value);
     const y = parseFloat(document.getElementById('y-input').value);
     const z = parseFloat(document.getElementById('z-input').value);
@@ -306,27 +310,8 @@ function updateSensorPositionText() {
     const yaw = parseFloat(document.getElementById('yaw-input').value);
     const fov = parseFloat(document.getElementById('fov-input').value);
     
-    sensor.position.x = x;
-    sensor.position.y = y;
-    sensor.position.z = z;
+    calcSensorPosition(x, y, z, pitch, yaw, fov);
 
-    // Set yaw globally and pitch locally (since we don't care about roll we can set yaw globally)
-    var quaternion = new THREE.Quaternion();
-    quaternion.setFromEuler(new THREE.Euler(0, 0, 0, 'XYZ')); // Initialize quaternion
-
-    // Apply yaw (rotation around Y) in the global coordinate frame
-    var yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    quaternion.multiply(yawQuaternion);
-
-    // Apply pitch (rotation around X) in the local coordinate frame
-    var pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
-    quaternion.multiply(pitchQuaternion);
-
-    // Set the object's rotation from the quaternion
-    sensor.rotation.setFromQuaternion(quaternion);
-
-    // Set FOV (the size of the cone circle)
-    sensor.setFOV(fov);
     updateSlidersFromSensor();
 };
 
@@ -337,11 +322,18 @@ function disableViz() {
     });
 };
 
+
+function saveResultsToTxt() {
+    // for each question/scene, save the sensor positions
+    return;
+}
+
+
 function addListeners(){
     // Add event listeners to update the camera position when sliders are moved
     const pos_names = ['x', 'y', 'z', 'pitch', 'yaw', 'fov'];
     for (let i = 0; i < pos_names.length; i++) {
-        document.getElementById(pos_names[i].concat('-', 'slider')).addEventListener('input', updateSensorPosition);
+        document.getElementById(pos_names[i].concat('-', 'slider')).addEventListener('input', updateSensorPositionSlider);
         document.getElementById(pos_names[i].concat('-', 'input')).addEventListener('keypress', function(e) {
             // check if the element is an `input` element and the key is `enter`
             console.log(e)
@@ -350,20 +342,17 @@ function addListeners(){
             }
         });
     };
-    document.getElementById('x-input').addEventListener('keypress', function(e) {
-        // check if the element is an `input` element and the key is `enter`
-        console.log(e)
-        if(e.target.nodeName === "INPUT" && e.key === 'Enter') {
-          updateSensorPositionText();
-        }
-    });
-    
+
     var exists = document.getElementById('add-sensor')
     if (exists) { document.getElementById('add-sensor').addEventListener('click', () => addSensor(false)); };
     var exists = document.getElementById('add-camera')
     if (exists) { document.getElementById('add-camera').addEventListener('click', () => addSensor(true)); };
-    document.getElementById('remove-sensor').addEventListener('click', removeSensor);
+    var exists = document.getElementById('remove-sensor')
+    if (exists) { document.getElementById('remove-sensor').addEventListener('click', removeSensor); };
+    var exists = document.getElementById('submit')
+    if (exists) {document.getElementById('submit').addEventListener('click', saveResultsToTxt);}
     document.getElementById('disable-viz').addEventListener('click', disableViz);
+    document.getElementById('next-level').addEventListener('click', () => level++)
 };
 
 
@@ -375,10 +364,14 @@ function saveSensorPos() {
 function animate() {
     requestAnimationFrame(animate);
     controls.update();
+    if (level == 2) {
+        loadGLB();
+        level++;
+    };
     renderer.render(scene, view_camera);
     //sensor_renderer.render(scene, sensor_camera);
 };
 
-setup(false);
+setup();
 addListeners();
 animate();
