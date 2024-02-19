@@ -35,11 +35,13 @@ function updateSlidersFromSensor() {
     document.getElementById('z-input').value = active_sensor.position.z;
 
     // Update orientation sliders
-    // get pitch locally and yaw globally
     var euler = new THREE.Euler();
+    var global_euler = new THREE.Euler();
     euler.setFromQuaternion(active_sensor.quaternion, 'XYZ');
+    global_euler.setFromQuaternion(active_sensor.getWorldQuaternion(active_sensor.quaternion), 'XYZ');
+    // get pitch locally and yaw globally
     document.getElementById('pitch-slider').value = euler.x;
-    document.getElementById('yaw-slider').value = euler.y;
+    document.getElementById('yaw-slider').value = global_euler.y;
     document.getElementById('fov-slider').value = active_sensor.fov;
     document.getElementById('pitch-input').value = euler.x;
     document.getElementById('yaw-input').value = euler.y;
