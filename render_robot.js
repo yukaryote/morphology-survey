@@ -366,6 +366,11 @@ function addListeners(){
     document.getElementById('disable-viz').addEventListener('click', disableViz);
 };
 
+
+function saveSensorPos() {
+    
+}
+
 // Animation loop
 function animate() {
     requestAnimationFrame(animate);
