@@ -15,14 +15,31 @@ export class Sensor extends THREE.Mesh {
       this.geometry = new THREE.ConeGeometry( SENSOR_RADIUS, SENSOR_HEIGHT, 32 )
       this.material = new THREE.MeshStandardMaterial({ color: new THREE.Color(SENSOR_COLOR).convertSRGBToLinear() });
       this.active = false
-      this.rotation.x = -Math.PI / 2
-      this.position.y = y
-      this.position.z = ROBOT_RADIUS + 0.5 * SENSOR_HEIGHT
-      this.fov = 90
-    }
+
+      this.rotation.set(-Math.PI / 2, 0, 0);
+      //this.position.y = y;      
+      this.fov = 90;
+      this.setFOV(this.fov);
+
+      this.updateMatrix();
+      this.geometry.applyMatrix4(this.matrix);
+      this.rotation.set(0, 0, 0);
+      this.position.set(0, y, ROBOT_RADIUS + 0.5 * SENSOR_HEIGHT);
+
+      const dir = new THREE.Vector3( 0, 0, 1 );
+
+      //normalize the direction vector (convert to vector of length 1)
+      dir.normalize();
   
-    render() {
-      this.rotation.x = this.rotation.y += 0.01
+      const origin = new THREE.Vector3( 0, 0, 0 );
+      const length = 1.5;
+      const hex = 0xffff00;
+  
+      const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
+      this.add( arrowHelper );
+
+      var sensorAxesHelper = new THREE.AxesHelper();
+      this.add(sensorAxesHelper);
     }
 
     setFOV(fov) {

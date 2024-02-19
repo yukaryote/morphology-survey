@@ -34,14 +34,27 @@ function updateSlidersFromSensor() {
     document.getElementById('y-input').value = active_sensor.position.y;
     document.getElementById('z-input').value = active_sensor.position.z;
 
-    // Update orientation sliders
+    // this quaternion is the sensor's rotation in world coords
+    var quaternion = active_sensor.quaternion;
     var euler = new THREE.Euler();
     var global_euler = new THREE.Euler();
-    euler.setFromQuaternion(active_sensor.quaternion, 'XYZ');
-    global_euler.setFromQuaternion(active_sensor.getWorldQuaternion(active_sensor.quaternion), 'XYZ');
+    // this is already the world transformation
+    euler.setFromQuaternion(quaternion, 'XYZ');
+    var global_pitch = euler.x;
+    var global_yaw = euler.y;
+
+    // Apply yaw (rotation around Y) in the global coordinate frame
+    //var yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    //quaternion.multiply(yawQuaternion);
+
+    // Apply pitch (rotation around X) in the local coordinate frame
+    //var pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
+    //quaternion.multiply(pitchQuaternion);
+
+    console.log(euler)
     // get pitch locally and yaw globally
     document.getElementById('pitch-slider').value = euler.x;
-    document.getElementById('yaw-slider').value = global_euler.y;
+    document.getElementById('yaw-slider').value = euler.y;
     document.getElementById('fov-slider').value = active_sensor.fov;
     document.getElementById('pitch-input').value = euler.x;
     document.getElementById('yaw-input').value = euler.y;
@@ -53,20 +66,6 @@ function addSensor(isCamera) {
     // Create a cone sensor
     var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2) : new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
     robot.add( cone );
-    var sensorAxesHelper = new THREE.AxesHelper();
-    cone.add(sensorAxesHelper)
-
-    const dir = new THREE.Vector3( 0, -1, 0 );
-
-    //normalize the direction vector (convert to vector of length 1)
-    dir.normalize();
-
-    const origin = new THREE.Vector3( 0, 0, 0 );
-    const length = 1.5;
-    const hex = 0xffff00;
-
-    const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );
-    cone.add( arrowHelper );
 
     // add camera to sensor. In this case, it'll just average out all the pixels
     sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -314,8 +313,18 @@ function updateSensorPositionText() {
     
     calcSensorPosition(x, y, z, pitch, yaw, fov);
 
-    updateSlidersFromSensor();
+    updateSlidersFromText();
 };
+
+
+function updateSlidersFromText() {
+    document.getElementById('x-slider').value = parseFloat(document.getElementById('x-input').value);
+    document.getElementById('y-slider').value = parseFloat(document.getElementById('y-input').value);
+    document.getElementById('z-slider').value = parseFloat(document.getElementById('z-input').value);
+    document.getElementById('pitch-slider').value = parseFloat(document.getElementById('pitch-input').value);
+    document.getElementById('yaw-slider').value = parseFloat(document.getElementById('yaw-input').value);
+    document.getElementById('fov-slider').value = parseFloat(document.getElementById('fov-input').value);
+}
 
 
 function disableViz() {
