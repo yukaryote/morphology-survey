@@ -45,7 +45,7 @@ export class Sensor extends THREE.Mesh {
     setFOV(fov) {
       var scale = fov / 90
       this.scale.x = scale
-      this.scale.z = scale
+      this.scale.y = scale
       this.fov = fov
     }
 

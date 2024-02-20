@@ -3,15 +3,16 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Sensor, Camera, ROBOT_HEIGHT, ROBOT_RADIUS } from './sensors.js'
 
-var controls;
-var renderer;
-var view_camera;
+var view_cameras = [];
 var sensor_camera;
-var robot;
 var sensor_renderer;
-var scene;
-var width = window.innerWidth
-var height = window.innerHeight
+
+var scenes = [];
+var renderers = [];
+var robots = [];
+var controls_arr = [];
+const questions = ["q1", "q2", "q3", "q4"];
+const pos_names = ['x', 'y', 'z', 'pitch', 'yaw', 'fov'];
 
 const sensors = new Map();
 var active_sensor;
@@ -20,19 +21,21 @@ const mouse = new THREE.Vector2()
 let intersects = [];
 let hovered = {};
 let level = 1;
+let renderedGLB = false;
 
 //results
 var results = {};
 
 
 function updateSlidersFromSensor() {
-    // Update position sliders
-    document.getElementById('x-slider').value = active_sensor.position.x;
-    document.getElementById('y-slider').value = active_sensor.position.y;
-    document.getElementById('z-slider').value = active_sensor.position.z;
-    document.getElementById('x-input').value = active_sensor.position.x;
-    document.getElementById('y-input').value = active_sensor.position.y;
-    document.getElementById('z-input').value = active_sensor.position.z;
+    var q = active_sensor.parent.name;
+
+    document.getElementById(questions[q] + '-x-slider').value = active_sensor.position.x;
+    document.getElementById(questions[q] + '-y-slider').value = active_sensor.position.y;
+    document.getElementById(questions[q] + '-z-slider').value = active_sensor.position.z;
+    document.getElementById(questions[q] + '-x-input').value = active_sensor.position.x;
+    document.getElementById(questions[q] + '-y-input').value = active_sensor.position.y;
+    document.getElementById(questions[q] + '-z-input').value = active_sensor.position.z;
 
     // this quaternion is the sensor's rotation in world coords
     var quaternion = active_sensor.quaternion;
@@ -40,59 +43,67 @@ function updateSlidersFromSensor() {
     // this is already the world transformation
     // get yaw (Y-axis) globally and pitch (X-axis) locally by doing YXZ rotation order
     euler.setFromQuaternion(quaternion, 'YXZ');
-    document.getElementById('pitch-slider').value = euler.x;
-    document.getElementById('yaw-slider').value = euler.y;
-    document.getElementById('fov-slider').value = active_sensor.fov;
-    document.getElementById('pitch-input').value = euler.x;
-    document.getElementById('yaw-input').value = euler.y;
-    document.getElementById('fov-input').value = active_sensor.fov;
+    document.getElementById(questions[q] + '-pitch-slider').value = euler.x;
+    document.getElementById(questions[q] + '-yaw-slider').value = euler.y;
+    document.getElementById(questions[q] + '-fov-slider').value = active_sensor.fov;
+    document.getElementById(questions[q] + '-pitch-input').value = euler.x;
+    document.getElementById(questions[q] + '-yaw-input').value = euler.y;
+    document.getElementById(questions[q] + '-fov-input').value = active_sensor.fov;
 };
 
 
-function addSensor(isCamera) {
+function addSensor(question, isCamera) {
     // Create a cone sensor
-    var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2) : new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
-    robot.add( cone );
+    if (robots[question].children.length < 2**question) {
+        var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2) : new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
+        
+        robots[question].add( cone );
+        console.log("added sensor to robot", question)
 
-    // add camera to sensor. In this case, it'll just average out all the pixels
-    sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    sensor_camera.rotation.x = cone.rotation.x;
-    sensor_camera.rotation.z = Math.PI;
-    sensor_camera.position.z = cone.position.z;
-    cone.add(sensor_camera);
+        // add camera to sensor. In this case, it'll just average out all the pixels
+        sensor_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+        sensor_camera.rotation.x = cone.rotation.x;
+        sensor_camera.rotation.z = Math.PI;
+        sensor_camera.position.z = cone.position.z;
+        cone.add(sensor_camera);
 
-    // deactivate all other sensors
-    sensors.forEach((sensor) => {
-        sensor.active = false;
-        sensor.updateColor(false);
-    });
+        // deactivate all other sensors
+        sensors.forEach((sensor) => {
+            sensor.active = false;
+            sensor.updateColor(false);
+        });
 
-    sensors.set(cone.uuid, cone);
-    cone.onClick();
-    cone.active = true;
-    cone.updateColor(false);
-    active_sensor = cone;
-    updateSlidersFromSensor();
+        sensors.set(cone.uuid, cone);
+        cone.onClick();
+        cone.active = true;
+        cone.updateColor(false);
+        active_sensor = cone;
+        updateSlidersFromSensor();
 
-    // TODO: turn all sliders to default values
-    return cone
+        return cone
+    }
 };
 
-function removeSensor() {
+function removeSensor(question) {
     // remove the active sensor
-    robot.remove(active_sensor);
+    console.log(question, robots[question])
+    robots[question].remove(active_sensor);
 };
 
 
-function setup() {
-    scene = new THREE.Scene();
-    view_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    renderer = new THREE.WebGLRenderer();
+function setupScene(question) {
+    var scene = new THREE.Scene();
+    var view_camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    var renderer = new THREE.WebGLRenderer();
+    scenes.push(scene);
+    renderers.push(renderer);
+    view_cameras.push(view_camera)
 
     //sensor_renderer = new THREE.WebGLRenderer();
     renderer.setSize(400, 400);
     //sensor_renderer.setSize(400, 400);
-    document.getElementById("render").appendChild(renderer.domElement);
+    var q_string = question + 1
+    document.getElementById("q" + q_string + "-render").appendChild(renderer.domElement);
     //document.getElementById("sensor-render").appendChild(sensor_renderer.domElement);
 
     // 1 directional light, 1 ambient light
@@ -110,15 +121,17 @@ function setup() {
     // Create a cylinder
     var geometry = new THREE.CylinderGeometry(ROBOT_RADIUS, ROBOT_RADIUS, ROBOT_HEIGHT, 32);
     const material = new THREE.MeshPhongMaterial();
-    robot = new THREE.Mesh( geometry, material );
+    var robot = new THREE.Mesh( geometry, material );
     // Set robot position
     robot.position.y = ROBOT_HEIGHT / 2;
     robot.position.x = 0;
     robot.position.z = 0;
     scene.add(robot);
+    robots.push(robot);
+    robot.name = question;
 
     // Create a cone sensor, add to sensors list
-    var _ = addSensor(false);
+    var _ = addSensor(question, false);
 
     // These are the default camera positions we can got to: home, side view, top view
     const camera_positions = [
@@ -128,11 +141,13 @@ function setup() {
     ];
 
     // Create drag controller
-    controls = new OrbitControls( view_camera, renderer.domElement );
+    var controls = new OrbitControls( view_camera, renderer.domElement );
     view_camera.position.copy(camera_positions[0]);
     controls.update();
-    controls.enablePan = false;
+    controls.enablePan = true;
     controls.enableDamping = true;
+
+    controls_arr.push(controls)
     // events
     renderer.domElement.addEventListener('pointermove', (e) => {
         //Set the mouse's 2D position in the render frame in NDC coords
@@ -184,7 +199,7 @@ function setup() {
 };
 
 
-function loadGLB() {
+function loadGLB(question) {
     const loader = new GLTFLoader();
 
     //load sphere
@@ -196,7 +211,7 @@ function loadGLB() {
             gltf.scene.position.y += 1.5;
             gltf.scene.position.x += 3;   
             gltf.scene.position.z += 3; 
-            scene.add( gltf.scene );
+            scenes[question].add( gltf.scene );
 
             gltf.animations; // Array<THREE.AnimationClip>
             gltf.scene; // THREE.Group
@@ -219,7 +234,7 @@ function loadGLB() {
             gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
             gltf.scene.position.x -= 2;   
             gltf.scene.position.z -= 2; 
-            scene.add( gltf.scene );
+            scenes[question].add( gltf.scene );
 
             gltf.animations; // Array<THREE.AnimationClip>
             gltf.scene; // THREE.Group
@@ -279,24 +294,26 @@ function calcSensorPosition(x, y, z, pitch, yaw, fov) {
 }
 
 function updateSensorPositionSlider() {
-    const x = parseFloat(document.getElementById('x-slider').value);
-    const y = parseFloat(document.getElementById('y-slider').value);
-    const z = parseFloat(document.getElementById('z-slider').value);
-    const pitch = parseFloat(document.getElementById('pitch-slider').value);
-    const yaw = parseFloat(document.getElementById('yaw-slider').value);
-    const fov = parseFloat(document.getElementById('fov-slider').value);
+    var q = active_sensor.parent.name;
+    const x = parseFloat(document.getElementById(questions[q] + '-x-slider').value);
+    const y = parseFloat(document.getElementById(questions[q] + '-y-slider').value);
+    const z = parseFloat(document.getElementById(questions[q] + '-z-slider').value);
+    const pitch = parseFloat(document.getElementById(questions[q] + '-pitch-slider').value);
+    const yaw = parseFloat(document.getElementById(questions[q] + '-yaw-slider').value);
+    const fov = parseFloat(document.getElementById(questions[q] + '-fov-slider').value);
     
     calcSensorPosition(x, y, z, pitch, yaw, fov);
 };
 
 
 function updateSensorPositionText() {
-    const x = parseFloat(document.getElementById('x-input').value);
-    const y = parseFloat(document.getElementById('y-input').value);
-    const z = parseFloat(document.getElementById('z-input').value);
-    const pitch = parseFloat(document.getElementById('pitch-input').value);
-    const yaw = parseFloat(document.getElementById('yaw-input').value);
-    const fov = parseFloat(document.getElementById('fov-input').value);
+    var q = active_sensor.parent.name;
+    const x = parseFloat(document.getElementById(questions[q] + '-x-input').value);
+    const y = parseFloat(document.getElementById(questions[q] + '-y-input').value);
+    const z = parseFloat(document.getElementById(questions[q] + '-z-input').value);
+    const pitch = parseFloat(document.getElementById(questions[q] + '-pitch-input').value);
+    const yaw = parseFloat(document.getElementById(questions[q] + '-yaw-input').value);
+    const fov = parseFloat(document.getElementById(questions[q] + '-fov-input').value);
     
     calcSensorPosition(x, y, z, pitch, yaw, fov);
 
@@ -305,71 +322,134 @@ function updateSensorPositionText() {
 
 
 function updateSlidersFromText() {
-    document.getElementById('x-slider').value = parseFloat(document.getElementById('x-input').value);
-    document.getElementById('y-slider').value = parseFloat(document.getElementById('y-input').value);
-    document.getElementById('z-slider').value = parseFloat(document.getElementById('z-input').value);
-    document.getElementById('pitch-slider').value = parseFloat(document.getElementById('pitch-input').value);
-    document.getElementById('yaw-slider').value = parseFloat(document.getElementById('yaw-input').value);
-    document.getElementById('fov-slider').value = parseFloat(document.getElementById('fov-input').value);
+    for (let i = 0; i < pos_names.length; i++) {
+        for (let j = 0; j < questions.length; j++) {
+            document.getElementById(questions[j] + pos_names[i] + '-' + 'slider').value = parseFloat(document.getElementById(questions[j] + pos_names[i] + '-' + 'input').value);
+        }
+    }
 }
 
 
 function disableViz() {
-    robot.children.forEach((sensor) => {
+    var question = active_sensor.parent.name;
+    console.log("disable vis for quesetion", question + 1);
+    robots[question].children.forEach((sensor) => {
         sensor.visible = !sensor.visible;
     });
 };
 
 
+function addLevelToResults() {
+    // after user clicks next-level (if level < 4), save the results to a dictionary
+    if (level < 4) {
+        let disp = document.getElementById("level");
+        if (level == 1) {
+            disp.innerHTML = (level + 1) + ": textural description of maze environment + 3D render of maze"
+        }
+        else if (level == 2) {
+            disp.innerHTML = (level + 1) + ": Final level. Textural description of Matterport3D environment + 3D render of Matterport3D environment (non interactive sorry)"
+        }
+        results[level] = {};
+        for (let i = 0; i < scenes.length; i++) {
+            var sensor_type;
+            if (i == 0) {
+                sensor_type = "camera";
+            }
+            results[level][questions[i]] = {};
+            for (let j = 0; j < robots[i].children.length; j++) {
+                results[level][questions[i]]["sensor_" + j] = {}
+                var sensor = robots[i].children[j];
+                results[level][questions[i]]["sensor_" + j]["x"] = robots[i].children[j].position.x;
+                results[level][questions[i]]["sensor_" + j]["y"] = robots[i].children[j].position.y;
+                results[level][questions[i]]["sensor_" + j]["z"] = robots[i].children[j].position.z;
+                results[level][questions[i]]["sensor_" + j]["fov"] = robots[i].children[j].fov;
+
+                // this quaternion is the sensor's rotation in world coords
+                var quaternion = sensor.quaternion;
+                var euler = new THREE.Euler();
+                // this is already the world transformation
+                // get yaw (Y-axis) globally and pitch (X-axis) locally by doing YXZ rotation order
+                euler.setFromQuaternion(quaternion, 'YXZ');
+                results[level][questions[i]]["sensor_" + j]["pitch"] = euler.x;
+                results[level][questions[i]]["sensor_" + j]["yaw"] = euler.y;
+            }
+        }
+        level++;
+        console.log("level up", level, results);
+    }
+    else {
+        console.log("max level reached");
+    }
+    return;
+}
+
+
 function saveResultsToTxt() {
     // for each question/scene, save the sensor positions
-    return;
+    let jsonResults = JSON.stringify(results);
+    let blob = new Blob([jsonResults], { type: "application/json" });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download = "results.json";
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
 }
 
 
 function addListeners(){
     // Add event listeners to update the camera position when sliders are moved
-    const pos_names = ['x', 'y', 'z', 'pitch', 'yaw', 'fov'];
     for (let i = 0; i < pos_names.length; i++) {
-        document.getElementById(pos_names[i].concat('-', 'slider')).addEventListener('input', updateSensorPositionSlider);
-        document.getElementById(pos_names[i].concat('-', 'input')).addEventListener('keypress', function(e) {
-            // check if the element is an `input` element and the key is `enter`
-            console.log(e)
-            if(e.target.nodeName === "INPUT" && e.key === 'Enter') {
-              updateSensorPositionText();
-            }
-        });
+        for (let j = 0; j < questions.length; j++) {
+            console.log(questions[j] + '-' + pos_names[i] + '-slider')
+            console.log(document.getElementById(questions[j] + '-' + pos_names[i] + '-slider'))
+            document.getElementById(questions[j] + '-' + pos_names[i] + '-slider').addEventListener('input', updateSensorPositionSlider);
+            document.getElementById(questions[j] + '-' + pos_names[i] + '-input').addEventListener('keypress', function(e) {
+                // check if the element is an `input` element and the key is `enter`
+                console.log(e)
+                if(e.target.nodeName === "INPUT" && e.key === 'Enter') {
+                  updateSensorPositionText();
+                }
+            });
+        }
     };
 
-    var exists = document.getElementById('add-sensor')
-    if (exists) { document.getElementById('add-sensor').addEventListener('click', () => addSensor(false)); };
-    var exists = document.getElementById('add-camera')
-    if (exists) { document.getElementById('add-camera').addEventListener('click', () => addSensor(true)); };
-    var exists = document.getElementById('remove-sensor')
-    if (exists) { document.getElementById('remove-sensor').addEventListener('click', removeSensor); };
+    for (let i = 0; i < questions.length; i++) {
+        var exists = document.getElementById(questions[i] + '-add-sensor')
+        if (exists) { document.getElementById(questions[i] + '-add-sensor').addEventListener('click', () => addSensor(i, false)); };
+        var exists = document.getElementById(questions[i] + '-add-camera')
+        if (exists) { document.getElementById(questions[i] + '-add-camera').addEventListener('click', () => addSensor(i, true)); };
+        var exists = document.getElementById(questions[i] + '-remove-sensor')
+        if (exists) { document.getElementById(questions[i] + '-remove-sensor').addEventListener('click', removeSensor(i)); };
+        document.getElementById(questions[i] + '-disable-viz').addEventListener('click', disableViz);
+    }
     var exists = document.getElementById('submit')
     if (exists) {document.getElementById('submit').addEventListener('click', saveResultsToTxt);}
-    document.getElementById('disable-viz').addEventListener('click', disableViz);
-    document.getElementById('next-level').addEventListener('click', () => level++)
+    document.getElementById('next-level').addEventListener('click', addLevelToResults)
 };
 
 
-function saveSensorPos() {
-    
-}
-
-// Animation loop
 function animate() {
     requestAnimationFrame(animate);
-    controls.update();
-    if (level == 2) {
-        loadGLB();
-        level++;
+    if (level == 2 && !renderedGLB) {
+        for (var i = 0; i < renderers.length; i++) {
+            loadGLB(i);
+        }
+        renderedGLB = true;
     };
-    renderer.render(scene, view_camera);
+    controls_arr.forEach(function(control) {
+        control.update();
+    });
+    for (var i = 0; i < renderers.length; i++) {
+        renderers[i].render(scenes[i], view_cameras[i]);
+    }
     //sensor_renderer.render(scene, sensor_camera);
 };
 
-setup();
+for (var i = 0; i < questions.length; i++) {
+    setupScene(i);
+}
+
 addListeners();
 animate();

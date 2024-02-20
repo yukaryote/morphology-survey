@@ -5,8 +5,14 @@ body {
     background-color: #fff;
 }
 
-#title, #description{
+.title{
     text-align: center;
+    width: 50%;
+    margin: auto;
+}
+
+.description{
+    text-align: left;
     width: 50%;
     margin: auto;
 }
@@ -17,7 +23,7 @@ body {
     align-items: center;
 }
 
-#render, #sensor-render {
+.render, .sensor-render {
     flex: 0, 0, auto;
     display: flex;
     justify-content: center;
