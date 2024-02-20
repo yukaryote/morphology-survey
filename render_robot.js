@@ -37,22 +37,9 @@ function updateSlidersFromSensor() {
     // this quaternion is the sensor's rotation in world coords
     var quaternion = active_sensor.quaternion;
     var euler = new THREE.Euler();
-    var global_euler = new THREE.Euler();
     // this is already the world transformation
-    euler.setFromQuaternion(quaternion, 'XYZ');
-    var global_pitch = euler.x;
-    var global_yaw = euler.y;
-
-    // Apply yaw (rotation around Y) in the global coordinate frame
-    //var yawQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    //quaternion.multiply(yawQuaternion);
-
-    // Apply pitch (rotation around X) in the local coordinate frame
-    //var pitchQuaternion = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitch);
-    //quaternion.multiply(pitchQuaternion);
-
-    console.log(euler)
-    // get pitch locally and yaw globally
+    // get yaw (Y-axis) globally and pitch (X-axis) locally by doing YXZ rotation order
+    euler.setFromQuaternion(quaternion, 'YXZ');
     document.getElementById('pitch-slider').value = euler.x;
     document.getElementById('yaw-slider').value = euler.y;
     document.getElementById('fov-slider').value = active_sensor.fov;
