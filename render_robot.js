@@ -386,6 +386,7 @@ function addLevelToResults() {
 
 function saveResultsToTxt() {
     // for each question/scene, save the sensor positions
+    addLevelToResults()
     let jsonResults = JSON.stringify(results);
     let blob = new Blob([jsonResults], { type: "application/json" });
     let url = URL.createObjectURL(blob);
