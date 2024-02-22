@@ -376,6 +376,10 @@ function addLevelToResults() {
         }
         level++;
         console.log("level up", level, results);
+        if (level == 3) {
+            var submit = document.getElementById("submit");
+            submit.style.display = "block";
+        }
     }
     else {
         console.log("max level reached");

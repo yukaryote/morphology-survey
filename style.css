@@ -11,6 +11,10 @@ body {
     margin: auto;
 }
 
+#level-title {
+    font-size: x-large;
+}
+
 .description{
     text-align: left;
     width: 50%;

@@ -9,13 +9,14 @@
     <div id="level-title" class="title">
         <h1>Level <span id="level">1</span>: textual description of maze environment</h1>
     </div>
+    <br>
     <div class="title">
         <h1>Question 1: Optimize design and placement of single cameras</h1>
     </div>
     <div id="env-description" class="description">
-        <p>The image below is an interactive 3D render of a robot (the cylinder) in a maze-like environment. The robot's task is to find the green ball in the maze as quickly as possible.
+        <p>The image below is an interactive 3D render of a robot (the cylinder). The robot operates in a maze-like environment. The robot's task is to find the green ball in the maze as quickly as possible.
             The robot is equipped with an RGB camera (the yellow cone). The camera outputs a 256 x 256 x 3 image. The yellow arrow on the camera indicates its direction of view. </p>
-        <p>Your task is to optimize the camera parameters below to allow the robot to find the ball as quickly as possible.</p>
+        <p>Your task is to optimize the camera parameters below to allow the robot to autonomously find the ball as quickly as possible.</p>
         <p><b>Environment details: </b>
             <ul>
                 <li>The maze is 20m x 20m square. There are walls at the boundaries (not part of the maze) that are 4m tall.</li>
@@ -26,6 +27,7 @@
         <p><b>Robot details: </b>
             <ul>
                 <li>The robot is on the ground and has actions {move forward 0.1 meters, turn left 10 degrees, turn right 10 degrees}.</li>
+                <li>The robot will be controlled by a reinforcement learning (RL) algorithm with your design's sensor output as its input. The RL algorithm has memory of the robot's past actions.</li>
                 <li>The robot's forward direction is the positive Z axis.</li>
                 <li>The robot has height 4 meters, so the max height of a sensor is 4 meters.</li>
             </ul>
@@ -205,7 +207,7 @@
             <br>
             <a href="#q3"><button id="prev">Previous</button></a>
             <a href="#level-title"><button id="next-level">Next level</button></a>
-            <a href="results.json"><button id="submit">Submit</button></a>
+            <a href="results.json"><button id="submit" style="display:none">Submit</button></a>
         </div>
     </div>
     <script type="importmap">
