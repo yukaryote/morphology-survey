@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 
 export const ROBOT_RADIUS = 0.5;
-export const ROBOT_HEIGHT = 4;
+export const ROBOT_HEIGHT = 2.5;
 
-const SENSOR_RADIUS = 0.5;
-const SENSOR_HEIGHT = 1;
+const SENSOR_RADIUS = 0.25;
+const SENSOR_HEIGHT = 0.5;
 const SENSOR_COLOR = "yellow";
 const CAMERA_COLOR = "blue"
 const ACTIVE_COLOR = "pink";
@@ -32,7 +32,7 @@ export class Sensor extends THREE.Mesh {
       dir.normalize();
   
       const origin = new THREE.Vector3( 0, 0, 0 );
-      const length = 1.5;
+      const length = .75;
       const hex = 0xffff00;
   
       const arrowHelper = new THREE.ArrowHelper( dir, origin, length, hex );

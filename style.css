@@ -35,7 +35,7 @@ body {
     background-color: #fff;
 }
 
-.controls {
+.controls, .prev-next{
     display: center;
     flex-direction: column;
     justify-content: center;

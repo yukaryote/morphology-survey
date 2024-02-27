@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { Sensor, Camera, ROBOT_HEIGHT, ROBOT_RADIUS } from './sensors.js'
+import { Sensor, Camera, ROBOT_HEIGHT, ROBOT_RADIUS } from './sensors.js';
+import * as utils from './utils.js';
 
 var view_cameras = [];
 var sensor_camera;
@@ -21,7 +22,10 @@ const mouse = new THREE.Vector2()
 let intersects = [];
 let hovered = {};
 let level = 1;
+const MAX_LEVEL = 2;
 let renderedGLB = false;
+
+const camera_position = new THREE.Vector3(4, 5, 4);
 
 //results
 var results = {};
@@ -54,8 +58,8 @@ function updateSlidersFromSensor() {
 
 function addSensor(question, isCamera) {
     // Create a cone sensor
-    if (robots[question].children.length < 2**question) {
-        var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2) : new Sensor(Math.random() * ROBOT_HEIGHT - ROBOT_HEIGHT / 2);
+    if (question < 2 || robots[question].children.length < 2**question) {
+        var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT) : new Sensor(Math.random() * ROBOT_HEIGHT);
         
         robots[question].add( cone );
         console.log("added sensor to robot", question)
@@ -115,34 +119,28 @@ function setupScene(question) {
     scene.add(ambientLight);
 
     //viz axes
-    const axesHelper = new THREE.AxesHelper( 5 );
-    scene.add( axesHelper );
 
     // Create a cylinder
     var geometry = new THREE.CylinderGeometry(ROBOT_RADIUS, ROBOT_RADIUS, ROBOT_HEIGHT, 32);
     const material = new THREE.MeshPhongMaterial();
-    var robot = new THREE.Mesh( geometry, material );
-    // Set robot position
-    robot.position.y = ROBOT_HEIGHT / 2;
-    robot.position.x = 0;
-    robot.position.z = 0;
+    var cylinder = new THREE.Mesh( geometry, material );
+    var robot = new THREE.Object3D();
+    cylinder.position.y = ROBOT_HEIGHT / 2;
+    robot.add(cylinder)
     scene.add(robot);
+
+    const axesHelper = new THREE.AxesHelper( 5 );
+    robot.add( axesHelper );
     robots.push(robot);
+
     robot.name = question;
 
     // Create a cone sensor, add to sensors list
-    var _ = addSensor(question, false);
-
-    // These are the default camera positions we can got to: home, side view, top view
-    const camera_positions = [
-        new THREE.Vector3(7, 7, 7),
-        new THREE.Vector3(0, 0, 10),
-        new THREE.Vector3(0, 20, 0)
-    ];
+    addSensor(question, false);
 
     // Create drag controller
     var controls = new OrbitControls( view_camera, renderer.domElement );
-    view_camera.position.copy(camera_positions[0]);
+    view_camera.position.copy(camera_position);
     controls.update();
     controls.enablePan = true;
     controls.enableDamping = true;
@@ -209,8 +207,8 @@ function loadGLB(question) {
         //'data/empty_room_20_20.glb',
         function ( gltf ) {
             gltf.scene.position.y += 1.5;
-            gltf.scene.position.x += 3;   
-            gltf.scene.position.z += 3; 
+            gltf.scene.position.x += -1;   
+            gltf.scene.position.z += 4; 
             scenes[question].add( gltf.scene );
 
             gltf.animations; // Array<THREE.AnimationClip>
@@ -228,12 +226,12 @@ function loadGLB(question) {
     );
     loader.load(
         // resource URL
-        'data/len_2.0_rem_0.6_config_0.glb',
+        'data/small2.glb',
         //'data/empty_room_20_20.glb',
         function ( gltf ) {
-            gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
-            gltf.scene.position.x -= 2;   
-            gltf.scene.position.z -= 2; 
+            //gltf.scene.rotation.x = -Math.PI / 2; // Rotate 90 degrees
+            gltf.scene.position.x += 4;   
+            gltf.scene.position.z += 6; 
             scenes[question].add( gltf.scene );
 
             gltf.animations; // Array<THREE.AnimationClip>
@@ -341,13 +339,10 @@ function disableViz() {
 
 function addLevelToResults() {
     // after user clicks next-level (if level < 4), save the results to a dictionary
-    if (level < 4) {
+    if (level < MAX_LEVEL) {
         let disp = document.getElementById("level");
         if (level == 1) {
-            disp.innerHTML = (level + 1) + ": textural description of maze environment + 3D render of maze"
-        }
-        else if (level == 2) {
-            disp.innerHTML = (level + 1) + ": Final level. Textural description of Matterport3D environment + 3D render of Matterport3D environment (non interactive sorry)"
+            disp.innerHTML = (level + 1) + ": textural description of environment + 3D render of environment"
         }
         results[level] = {};
         for (let i = 0; i < scenes.length; i++) {
@@ -375,11 +370,14 @@ function addLevelToResults() {
             }
         }
         level++;
-        console.log("level up", level, results);
-        if (level == 3) {
+        if (level == 2) {
+            // add a submit button and also change the env description
             var submit = document.getElementById("submit");
             submit.style.display = "block";
+
+            document.getElementById("env-description").innerHTML = utils.lvl_2_html;
         }
+        console.log("level up", level, results);
     }
     else {
         console.log("max level reached");
@@ -400,6 +398,14 @@ function saveResultsToTxt() {
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
+}
+
+
+function addControlsHTML() {
+    for (let i = 0; i < questions.length; i++) {
+        var element = document.getElementById(questions[i]);
+        element.innerHTML = utils.applyTemplate(utils.controls_html, { q: questions[i] });
+    }
 }
 
 
@@ -425,8 +431,6 @@ function addListeners(){
         if (exists) { document.getElementById(questions[i] + '-add-sensor').addEventListener('click', () => addSensor(i, false)); };
         var exists = document.getElementById(questions[i] + '-add-camera')
         if (exists) { document.getElementById(questions[i] + '-add-camera').addEventListener('click', () => addSensor(i, true)); };
-        var exists = document.getElementById(questions[i] + '-remove-sensor')
-        if (exists) { document.getElementById(questions[i] + '-remove-sensor').addEventListener('click', removeSensor(i)); };
         document.getElementById(questions[i] + '-disable-viz').addEventListener('click', disableViz);
     }
     var exists = document.getElementById('submit')
@@ -452,9 +456,9 @@ function animate() {
     //sensor_renderer.render(scene, sensor_camera);
 };
 
+addControlsHTML();
 for (var i = 0; i < questions.length; i++) {
     setupScene(i);
 }
-
 addListeners();
 animate();
