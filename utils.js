@@ -52,8 +52,8 @@ These homes have standard, human-friendly room dimensions. The green ball will s
 </ul>
 </p>
 
-<p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the camera shown in the viewport. All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
-<p><b>Viewport controls: </b>Click on the camera to edit it. The editable, "active" camera will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>`;
+<p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the sensor shown in the viewport. <b>Please place the sensors close to the robot's body.</b> All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
+<p><b>Viewport controls: </b>Click on the sensor to edit it. The editable, "active" sensor will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>`;
 
 export const lvl_3_html = `<p>In this final level, the robot's goal and action space remains the same as the previous level, but we now use 4 x 4 photoreceptors instead of 1 x 1 photoreceptors for the robot. 
 4 x 4 photoreceptors have 4 times the resolution of 1 x 1 photoreceptors, meaning that they can see 4 times the level of detail. In implementation, this means that 4 x 4 photoreceptors output a 4 x 4 RGB image instead of 1 x 1 RGB pixel like the 1 x 1 photoreceptor does.</p>
@@ -77,8 +77,8 @@ export const lvl_3_html = `<p>In this final level, the robot's goal and action s
 </ul>
 </p>
 
-<p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the camera shown in the viewport. All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
-<p><b>Viewport controls: </b>Click on the camera to edit it. The editable, "active" camera will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>`;
+<p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the sensor shown in the viewport. <b>Please place the sensors close to the robot's body.</b> All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
+<p><b>Viewport controls: </b>Click on the sensor to edit it. The editable, "active" sensor will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>`;
 
 export const lvl_3_pr_description_html = `
 <p>In these next questions, the robot's shape, environment, and goal are unchanged, but instead of a camera, the robot is equipped with 4 x 4 photoreceptors (the yellow cone).</p>

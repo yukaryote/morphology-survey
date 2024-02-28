@@ -383,9 +383,11 @@ function addLevelToResults() {
             document.getElementById("env-description").innerHTML = utils.lvl_2_html;
         }
         else if (level == 3) {
-            // add a submit button and also change the env description
+            // add a submit button, remove next level button, and also change the env description
             var submit = document.getElementById("submit");
             submit.style.display = "block";
+            var next_level = document.getElementById("next-level");
+            next_level.style.display = "none";
 
             document.getElementById("env-description").innerHTML = utils.lvl_3_html;
             document.getElementById("pr-question-description").innerHTML = utils.lvl_3_pr_description_html;
