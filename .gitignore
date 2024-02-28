@@ -1,8 +1,8 @@
 node_modules
 jspsych
-data
 three-viewcube
 *.DS_Store
 package-lock.json
 package.json
 results.json
+three/manual/examples/resources/data
