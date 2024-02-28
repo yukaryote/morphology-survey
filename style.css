@@ -35,6 +35,10 @@ body {
     background-color: #fff;
 }
 
+li {
+    margin: 10px 0;
+}
+
 .controls, .prev-next{
     display: center;
     flex-direction: column;

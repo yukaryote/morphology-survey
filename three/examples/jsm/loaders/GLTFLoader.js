@@ -3039,18 +3039,13 @@ class GLTFParser {
 	loadTexture( textureIndex ) {
 
 		const json = this.json;
-		console.log("json", json);
 		const options = this.options;
 		const textureDef = json.textures[ textureIndex ];
-		console.log("textureDef", textureDef);
 		var sourceIndex = textureDef.source;
-		console.log("sourceIndex", sourceIndex);
 		if (textureDef.source == undefined) {
 			var sourceIndex = textureDef.extensions.GOOGLE_texture_basis.source;
-			console.log("sourceIndex fixed", sourceIndex);
 		}
 		const sourceDef = json.images[ sourceIndex ];
-		console.log("sourceDef", sourceDef);
 
 		let loader = this.textureLoader;
 

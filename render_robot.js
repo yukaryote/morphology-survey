@@ -12,7 +12,7 @@ var scenes = [];
 var renderers = [];
 var robots = [];
 var controls_arr = [];
-const questions = ["q1", "q2", "q3", "q4"];
+const questions = ["q1", "q2", "q3"];
 const pos_names = ['x', 'y', 'z', 'pitch', 'yaw', 'fov'];
 
 const sensors = new Map();
@@ -22,7 +22,7 @@ const mouse = new THREE.Vector2()
 let intersects = [];
 let hovered = {};
 let level = 1;
-const MAX_LEVEL = 2;
+const MAX_LEVEL = 3;
 let renderedGLB = false;
 
 const camera_position = new THREE.Vector3(4, 5, 4);
@@ -58,7 +58,7 @@ function updateSlidersFromSensor() {
 
 function addSensor(question, isCamera) {
     // Create a cone sensor
-    if (question < 2 || robots[question].children.length < 2**question) {
+    if (robots[question].children.length - 1 <= 2**question) {
         var cone = isCamera ? new Camera(Math.random() * ROBOT_HEIGHT) : new Sensor(Math.random() * ROBOT_HEIGHT);
         
         robots[question].add( cone );
@@ -217,12 +217,12 @@ function loadGLB(question) {
             gltf.cameras; // Array<THREE.Camera>
             gltf.asset; // Object
         },
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        function ( error ) {
-            console.log( 'An error happened' );
-        }
+        // function ( xhr ) {
+        //     console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        // },
+        // function ( error ) {
+        //     console.log( 'An error happened' );
+        // }
     );
     loader.load(
         // resource URL
@@ -240,13 +240,13 @@ function loadGLB(question) {
             gltf.cameras; // Array<THREE.Camera>
             gltf.asset; // Object
         },
-        function ( xhr ) {
-            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-        },
-        function ( error ) {
-            console.log( 'An error happened' );
-            console.log(error);
-        }
+        // function ( xhr ) {
+        //     console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+        // },
+        // function ( error ) {
+        //     console.log( 'An error happened' );
+        //     console.log(error);
+        // }
     );
 }
 
@@ -330,7 +330,6 @@ function updateSlidersFromText() {
 
 function disableViz() {
     var question = active_sensor.parent.name;
-    console.log("disable vis for quesetion", question + 1);
     robots[question].children.forEach((sensor) => {
         sensor.visible = !sensor.visible;
     });
@@ -339,43 +338,57 @@ function disableViz() {
 
 function addLevelToResults() {
     // after user clicks next-level (if level < 4), save the results to a dictionary
-    if (level < MAX_LEVEL) {
+    if (level <= MAX_LEVEL) {
         let disp = document.getElementById("level");
         if (level == 1) {
             disp.innerHTML = (level + 1) + ": textural description of environment + 3D render of environment"
         }
+        if (level == 2) {
+            disp.innerHTML = (level + 1) + ": change in photoreceptor resolution"
+        }
+
         results[level] = {};
+        console.log("adding sensors to results")
         for (let i = 0; i < scenes.length; i++) {
             var sensor_type;
             if (i == 0) {
                 sensor_type = "camera";
             }
             results[level][questions[i]] = {};
+            console.log("scene", i);
             for (let j = 0; j < robots[i].children.length; j++) {
-                results[level][questions[i]]["sensor_" + j] = {}
-                var sensor = robots[i].children[j];
-                results[level][questions[i]]["sensor_" + j]["x"] = robots[i].children[j].position.x;
-                results[level][questions[i]]["sensor_" + j]["y"] = robots[i].children[j].position.y;
-                results[level][questions[i]]["sensor_" + j]["z"] = robots[i].children[j].position.z;
-                results[level][questions[i]]["sensor_" + j]["fov"] = robots[i].children[j].fov;
+                console.log("is sensor", robots[i].children[j] instanceof Sensor, robots[i].children[j]);
+                if (robots[i].children[j] instanceof Sensor) {
+                    results[level][questions[i]]["sensor_" + j] = {}
+                    var sensor = robots[i].children[j];
+                    results[level][questions[i]]["sensor_" + j]["x"] = robots[i].children[j].position.x;
+                    results[level][questions[i]]["sensor_" + j]["y"] = robots[i].children[j].position.y;
+                    results[level][questions[i]]["sensor_" + j]["z"] = robots[i].children[j].position.z;
+                    results[level][questions[i]]["sensor_" + j]["fov"] = robots[i].children[j].fov;
 
-                // this quaternion is the sensor's rotation in world coords
-                var quaternion = sensor.quaternion;
-                var euler = new THREE.Euler();
-                // this is already the world transformation
-                // get yaw (Y-axis) globally and pitch (X-axis) locally by doing YXZ rotation order
-                euler.setFromQuaternion(quaternion, 'YXZ');
-                results[level][questions[i]]["sensor_" + j]["pitch"] = euler.x;
-                results[level][questions[i]]["sensor_" + j]["yaw"] = euler.y;
+                    // this quaternion is the sensor's rotation in world coords
+                    var quaternion = sensor.quaternion;
+                    var euler = new THREE.Euler();
+                    // this is already the world transformation
+                    // get yaw (Y-axis) globally and pitch (X-axis) locally by doing YXZ rotation order
+                    euler.setFromQuaternion(quaternion, 'YXZ');
+                    results[level][questions[i]]["sensor_" + j]["pitch"] = euler.x;
+                    results[level][questions[i]]["sensor_" + j]["yaw"] = euler.y;
+                }
+                
             }
         }
         level++;
         if (level == 2) {
+            document.getElementById("env-description").innerHTML = utils.lvl_2_html;
+        }
+        else if (level == 3) {
             // add a submit button and also change the env description
             var submit = document.getElementById("submit");
             submit.style.display = "block";
 
-            document.getElementById("env-description").innerHTML = utils.lvl_2_html;
+            document.getElementById("env-description").innerHTML = utils.lvl_3_html;
+            document.getElementById("pr-question-description").innerHTML = utils.lvl_3_pr_description_html;
         }
         console.log("level up", level, results);
     }
@@ -413,8 +426,6 @@ function addListeners(){
     // Add event listeners to update the camera position when sliders are moved
     for (let i = 0; i < pos_names.length; i++) {
         for (let j = 0; j < questions.length; j++) {
-            console.log(questions[j] + '-' + pos_names[i] + '-slider')
-            console.log(document.getElementById(questions[j] + '-' + pos_names[i] + '-slider'))
             document.getElementById(questions[j] + '-' + pos_names[i] + '-slider').addEventListener('input', updateSensorPositionSlider);
             document.getElementById(questions[j] + '-' + pos_names[i] + '-input').addEventListener('keypress', function(e) {
                 // check if the element is an `input` element and the key is `enter`

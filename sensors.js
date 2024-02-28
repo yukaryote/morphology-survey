@@ -3,8 +3,8 @@ import * as THREE from 'three';
 export const ROBOT_RADIUS = 0.5;
 export const ROBOT_HEIGHT = 2.5;
 
-const SENSOR_RADIUS = 0.25;
-const SENSOR_HEIGHT = 0.5;
+const SENSOR_RADIUS = 0.375;
+const SENSOR_HEIGHT = 0.75;
 const SENSOR_COLOR = "yellow";
 const CAMERA_COLOR = "blue"
 const ACTIVE_COLOR = "pink";

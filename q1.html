@@ -16,20 +16,19 @@
     </script>
     <script type="module" src="render_robot.js"></script>
     <div id="level-title" class="title">
-        <h1>Level <span id="level">1</span>: description of robot and task</h1>
+        <h1>Level <span id="level">1: environment-independent sensor design</span></h1>
     </div>
     <br>
-    <div class="title">
-        <h1>Question 1: Optimize design and placement of single cameras</h1>
-    </div>
+
     <div id="env-description" class="description">
-        <p>The image below is an interactive 3D render of a robot (the cylinder). The robot's goal is to find the green ball in the maze as quickly as possible. 
-            The robot is equipped with an RGB camera (the yellow cone). The camera outputs a 256 x 256 x 3 image. The yellow arrow on the camera indicates its direction of view. </p>
+        <p>The image below is an interactive 3D render of a robot (the cylinder). The robot's goal is to find the green ball in an arbitrary environment as quickly as possible.</p>
         <p>Your task is to optimize the camera parameters below to allow the robot to autonomously find the ball as quickly as possible. You have the following information:</p>
         <p><b>Robot details: </b>
             <ul>
-                <li>The robot is on the ground and has actions {move forward 0.1 meters, turn left 10 degrees, turn right 10 degrees}.</li>
-                <li>The robot will be controlled by a reinforcement learning (RL) algorithm that uses the visual output from the robot's sensors. The RL algorithm has memory of the robot's past actions since the start of its search until it reaches the goal.</li>
+                <li>The robot is on the ground and has actions <b>{move forward 0.1 meters, turn left 10 degrees, turn right 10 degrees}</b>.</li>
+                <li>The robot will be controlled by a <b>reinforcement learning (RL) policy that uses the visual output from the robot's sensors to navigate to the target</b>. The RL policy <b>rewards the robot for being close to the ball and for finding the ball quickly</b>. The policy <b>has memory of the robot's past actions and visual inputs</b> since the start of its search until it reaches the goal.
+                    You do not have to be familiar with reinforcement learning to complete the survey.
+                </li>
                 <li>The robot's forward direction is the positive Z axis.</li>
                 <li>The robot has height 2.5 meters, so the max height of a sensor is 2.5 meters.</li>
             </ul>
@@ -37,11 +36,20 @@
         <p><b>Environment details: </b>
             <ul>
                 <li>The ball is positioned at 1.5 meters above the ground and has radius 0.5 meters.</li>
-                <li>The ball is placed in a random position in the environment.</li>
+                <li>The ball is placed in a random position in the environment's ground.</li>
             </ul>
         </p>
         <p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the camera shown in the viewport. All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
-        <p><b>Viewport controls: </b>Click on a camera to edit it. The editable, "active" camera will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>
+        <p><b>Viewport controls: </b>You must click on a sensor to edit it. The editable, "active" camera will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>
+    </div>
+
+    <div class="title">
+        <h1>Question 1: Optimize design and placement of single cameras</h1>
+    </div>
+
+    <div class="description">
+        <p>In this question, the robot is equipped with an RGB camera (the yellow cone). The camera outputs a 256 x 256 x 3 image. The yellow arrow on the camera indicates its direction of view. </p>
+        <p>Click on the sensor to edit it.</p>
     </div>
 
     <div id="q1"></div>
@@ -51,11 +59,11 @@
     </div>
 
     <div class="title">
-        <h1>Questions 2-4: Optimize design and placement of photoreceptors</h1>
+        <h1>Questions 2 and 3: Optimize design and placement of photoreceptors</h1>
     </div>
-    <div class="description">
-        <p>In these next questions, the robot's shape, environment, and goal are unchanged, but instead of a camera, the robot is equipped with photoreceptors (the yellow cone).</p>
-        <p>According to our sensor model, a photoreceptor works similarly to a camera, but instead of capturing a H x W x 3 RGB image, it averages out all the H x W pixels in its field of view into one RGB value.</p>
+    <div id="pr-question-description" class="description">
+        <p>In these next questions, the robot's shape, environment, and goal are unchanged, but instead of a camera, the robot is equipped with 1 x 1 photoreceptors (the yellow cone).</p>
+        <p>According to our sensor model, a 1 x 1 photoreceptor works similarly to a camera, but instead of capturing a H x W x 3 RGB image, it averages out all the colors/light in its field of view into one RGB value.</p>
         <p>A higher FOV photoreceptor captures more of the environment, but is less sensitive to change. A lower FOV photoreceptor captures less of the environment, but is more sensitive to change.</p>
     </div>
     <div class="title">
@@ -81,22 +89,9 @@
     </div>
 
     <div id="q3"></div>
+
     <div class="prev-next">
         <a href="#q2"><button id="prev">Previous</button></a>
-        <a href="#q4"><button id="next">Next</button></a>
-    </div>
-
-    <div class="title">
-        <h1>Question 4: Optimize design and placement of 8 photoreceptors</h1>
-    </div>
-    <div class="description">
-        <p>In this question, your task is to optimize the parameters of 8 photoreceptors to allow the robot to find the ball as quickly as possible.</p>
-        <p>You can used the "Add photoreceptor" button to add a photoreceptor. Your final design MUST have exactly 8 photoreceptors.</p>
-    </div>
-    
-    <div id="q4"></div>
-    <div class="prev-next">
-        <a href="#q3"><button id="prev">Previous</button></a>
         <a href="#level-title"><button id="next-level">Next level</button></a>
         <a href="results.json"><button id="submit" style="display:none">Submit</button></a>
     </div>
