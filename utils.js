@@ -33,8 +33,8 @@ export const controls_html = `<div id="{q}">
 </div>`;
 
 export const lvl_2_html = `<p>The robot's goal and action space remains the same as the previous level, but now its environment could be any of the 90 homes from the <a href="https://arxiv.org/pdf/1709.06158.pdf">Matterport3D dataset</a>. Please take some time to familiarize yourself with the layout of an example home <a href="https://aspis.cmpt.sfu.ca/scene-toolkit/scans/simple-viewer?condition=mpr3d&modelId=mpr3d.1pXnuDYAj8r_14">here</a>.
-These homes have standard, human-friendly room dimensions. The green ball will still be 1.5m above the ground, but if the house has multiple floors, the ball could be on any of the floors.</p>
-<p>The render of the 3D home below is not from the Matterport3D dataset (the dataset textures cannot be loaded by Javascript so we had to go with another model for this survey), but is representative of the kinds of homes in the dataset. The ball is also in the render; use the viewport controls to find where it is.</p>
+These homes have standard, human-friendly room dimensions. The green ball will still be in a random location 1.5m above the ground, but if the house has multiple floors, the ball could be on any of the floors.</p>
+<p>The render of the 3D home below is not from the Matterport3D dataset (the dataset textures cannot be loaded by Javascript so we had to go with another model for this survey), but is representative of the kinds of homes in the dataset. A sample green ball at a representative position in the home is also present; use the viewport controls to find where it is.</p>
 <p>Your task is to optimize the camera parameters below to allow the robot to autonomously find the ball as quickly as possible. </p>
 <p><b>Robot details: </b>
 <ul>
