@@ -52,7 +52,7 @@ These homes have standard, human-friendly room dimensions. The green ball will s
 </ul>
 </p>
 
-<p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the sensor shown in the viewport. <b>Please place the sensors close to the robot's body.</b> All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
+<p><b>Camera controls: </b>Adjust the XYZ position, pitch/yaw, and field of view (FOV) of the sensor shown in the viewport. <b>Please place the sensors close to the robot's body.</b> All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
 <p><b>Viewport controls: </b>Click on the sensor to edit it. The editable, "active" sensor will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>`;
 
 export const lvl_3_html = `<p>In this final level, the robot's goal and action space remains the same as the previous level, but we now use 4 x 4 photoreceptors instead of 1 x 1 photoreceptors for the robot. 
@@ -77,7 +77,7 @@ export const lvl_3_html = `<p>In this final level, the robot's goal and action s
 </ul>
 </p>
 
-<p><b>Camera controls: </b>Adjust the XYZ position and pitch/yaw of the sensor shown in the viewport. <b>Please place the sensors close to the robot's body.</b> All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
+<p><b>Camera controls: </b>Adjust the XYZ position, pitch/yaw, and field of view (FOV) of the sensor shown in the viewport. <b>Please place the sensors close to the robot's body.</b> All parameters except for pitch are in the robot's coordinates; pitch is local to the sensor. X = red, Y = green, Z = blue.</p>
 <p><b>Viewport controls: </b>Click on the sensor to edit it. The editable, "active" sensor will be pink. You can rotate the view of the robot by holding left-click in the viewport and dragging. Pan by holding ctrl/cmd and dragging.</p>`;
 
 export const lvl_3_pr_description_html = `
